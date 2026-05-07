@@ -1,0 +1,70 @@
+Problem settings:
+- eps1: 1.0
+- eps2: 1.0
+- x_interface: 0.5
+- left_bc: 1.0
+- right_bc: 3.218281828459045
+- jump_u: 0.6487212707001282
+- jump_flux: 1.1487212707001282
+- reference_source: exact
+
+Numerical settings:
+- n_elements: 20
+- n_ref: 1000000
+- n_fdm: 20
+- n_fem: 20
+- quad_n: 10
+- n_seg_gauss: 8
+- plot_per_element: 250
+- fdm_plot_cells: 20
+- fem_plot_cells: 20
+- error_samples: 4000
+- use_true_c_lagrange: True
+- use_true_c_auglag: True
+- flux_jump_average: eps_weighted
+- auglag_rho: 10
+- auglag_max_iter: 100000
+- auglag_tol_primal: 1e-10
+- auglag_tol_stationarity: 1e-10
+- auglag_relax: 1.0
+- auglag_verbose: False
+
+Output settings:
+- output_dir: F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\compare_auglag\results_0
+- save_plots: True
+
+Timings (seconds):
+- build_elements: 0.025185
+- tfpm_strong_solve: 0.000591
+- auglag_assemble: 0.002336
+- auglag_solve: 0.001402
+- fdm_solve_total: 0.001050
+- fem_assemble: 0.001891
+- fem_solve: 0.000056
+- exact_reference_eval_total: 0.000108
+
+Relative L2 errors vs Exact:
+- TFPM-Strong vs Exact: 3.341295e-05
+- AugLag vs Exact: 1.223024e-07
+- FDM vs Exact: 1.898612e-04
+- FEM vs Exact: 2.247816e-04
+
+Relative H^1 errors vs Exact:
+- TFPM-Strong vs Exact: 8.048472e-05
+- AugLag vs Exact: 5.479337e-06
+- FDM vs Exact: 1.096234e-02
+- FEM vs Exact: 1.096062e-02
+
+Diagnostics:
+- Reference source = Exact
+- Transformed interval = [0.000000e+00, 1.000000e+00]
+- Transformed interface yI = 5.000000e-01
+- TFPM grid split: left elements = 10, right elements = 10
+- AugLag flux-jump average = eps_weighted (left=5.000000e-01, right=5.000000e-01)
+- AugLag final iter = 50
+- AugLag final primal residual = 2.655376e-10
+- AugLag final stationarity residual = 8.285039e-15
+- TFPM interface [u] residual = 4.440892e-16
+- TFPM interface [eps u'] residual = 2.220446e-16
+- AugLag interface [u] residual = 2.618123e-10
+- AugLag interface [eps u'] residual = 4.085979e-05

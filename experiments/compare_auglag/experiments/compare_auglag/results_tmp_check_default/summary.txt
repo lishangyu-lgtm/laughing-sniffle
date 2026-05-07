@@ -1,0 +1,35 @@
+Timings (seconds):
+- build_elements: 0.234485
+- tfpm_strong_solve: 0.002549
+- auglag_assemble: 0.018391
+- auglag_solve: 0.005193
+- fdm_reference_solve_total: 63.904974
+- fdm_solve_total: 0.007331
+- fem_assemble: 0.015126
+- fem_solve: 0.000257
+
+Relative L2 errors vs FDM fine:
+- TFPM-Strong vs FDM fine: 3.081889e-05
+- AugLag vs FDM fine: 2.667941e-05
+- FDM vs FDM fine: 3.502310e-01
+- FEM vs FDM fine: 3.085681e-01
+
+Relative H^1 errors vs FDM fine:
+- TFPM-Strong vs FDM fine: 3.294095e-04
+- AugLag vs FDM fine: 3.321870e-04
+- FDM vs FDM fine: 8.676803e-01
+- FEM vs FDM fine: 8.859716e-01
+
+Diagnostics:
+- Reference source = FDM fine
+- Transformed interval = [0.000000e+00, 5.000050e+04]
+- Transformed interface yI = 5.000000e-01
+- TFPM grid split: left elements = 50, right elements = 50
+- AugLag flux-jump average = eps_weighted (left=9.999900e-06, right=9.999900e-01)
+- AugLag final iter = 40
+- AugLag final primal residual = 9.649476e-09
+- AugLag final stationarity residual = 7.503406e-08
+- TFPM interface [u] residual = 0.000000e+00
+- TFPM interface [eps u'] residual = 1.976975e-18
+- AugLag interface [u] residual = 5.932876e-11
+- AugLag interface [eps u'] residual = 6.382846e-09

@@ -1,0 +1,22 @@
+Timings (seconds):
+- Energy ALM: 14.513311
+- TFPM-AugLag: 8.358857
+- FDM fine (N=16384): 37.521097
+
+Relative L2 errors vs FDM fine (N=16384):
+- Energy ALM vs FDM fine (N=16384): 1.351288e-06
+- TFPM-AugLag vs FDM fine (N=16384): 1.351432e-06
+
+Diagnostics:
+- Energy ALM converged = True
+- TFPM-AugLag converged = True
+- FDM fine (N=16384) converged = False
+- Energy ALM space steps = 6
+- TFPM-AugLag outer steps = 8
+- FDM fine (N=16384) Newton steps = 50
+- Energy ALM final energy = -1.445505732911e+01
+- Energy ALM final update = 3.522604e-11
+- Energy ALM final primal residual = 8.941801e-12
+- Energy ALM final stationarity = 9.769963e-15
+- TFPM-AugLag final update = 9.103829e-15
+- FDM fine (N=16384) final update = 6.301626e-13

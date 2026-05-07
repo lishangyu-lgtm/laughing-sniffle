@@ -1,0 +1,73 @@
+9022.490932 start epsilon=0.01 ndof=200 constraints=101 rho=10000.0 tol_inner_grad=1e-11
+9022.491365 aug 1 start
+9022.495092 aug 1 newton 1 eval 0.003446s E=3.502526876712e-01 grad_inf=1.000e+04 primal=1.000e+00
+9022.498243 aug 1 newton 1 linear 0.002818s solve step_inf=1.310e+01 directional=-2.000e+04
+9022.502188 aug 1 newton 1 line 0.003616s accepted=True line_count=1 alpha=1.000e+00
+9022.506222 aug 1 newton 2 eval 0.003727s E=1.111390411087e+03 grad_inf=5.428e+00 primal=1.112e-05
+9022.507454 aug 1 newton 2 linear 0.000932s solve step_inf=4.320e+00 directional=-1.481e+03
+9022.511053 aug 1 newton 2 line 0.003272s accepted=True line_count=1 alpha=1.000e+00
+9022.514764 aug 1 newton 3 eval 0.003423s E=2.198435998948e+02 grad_inf=1.609e+00 primal=7.303e-06
+9022.517231 aug 1 newton 3 linear 0.001506s solve step_inf=2.881e+00 directional=-2.926e+02
+9022.520708 aug 1 newton 3 line 0.003149s accepted=True line_count=1 alpha=1.000e+00
+9022.524172 aug 1 newton 4 eval 0.003138s E=4.377283471377e+01 grad_inf=4.769e-01 primal=4.913e-06
+9022.525375 aug 1 newton 4 linear 0.000925s solve step_inf=1.922e+00 directional=-5.778e+01
+9022.528744 aug 1 newton 4 line 0.003058s accepted=True line_count=1 alpha=1.000e+00
+9022.532177 aug 1 newton 5 eval 0.003119s E=8.996572302689e+00 grad_inf=1.415e-01 primal=3.304e-06
+9022.533405 aug 1 newton 5 linear 0.000911s solve step_inf=1.285e+00 directional=-1.143e+01
+9022.536722 aug 1 newton 5 line 0.002959s accepted=True line_count=1 alpha=1.000e+00
+9022.540016 aug 1 newton 6 eval 0.002993s E=2.115424269760e+00 grad_inf=4.221e-02 primal=2.226e-06
+9022.541093 aug 1 newton 6 linear 0.000779s solve step_inf=8.723e-01 directional=-2.287e+00
+9022.544328 aug 1 newton 6 line 0.002948s accepted=True line_count=1 alpha=1.000e+00
+9022.547623 aug 1 newton 7 eval 0.003002s E=7.324613311496e-01 grad_inf=1.306e-02 primal=1.549e-06
+9022.549591 aug 1 newton 7 linear 0.001640s solve step_inf=7.483e-01 directional=-5.162e-01
+9022.553268 aug 1 newton 7 line 0.003352s accepted=True line_count=1 alpha=1.000e+00
+9022.557015 aug 1 newton 8 eval 0.003440s E=4.054985027310e-01 grad_inf=5.970e-03 primal=1.094e-06
+9022.558363 aug 1 newton 8 linear 0.001031s solve step_inf=1.715e+00 directional=-3.948e-01
+9022.561931 aug 1 newton 8 line 0.003237s accepted=True line_count=1 alpha=1.000e+00
+9022.565564 aug 1 newton 9 eval 0.003286s E=1.508334931350e-01 grad_inf=9.370e-03 primal=7.525e-07
+9022.566624 aug 1 newton 9 linear 0.000755s solve step_inf=3.229e+00 directional=-3.573e-01
+9022.572735 aug 1 newton 9 line 0.005785s accepted=True line_count=2 alpha=5.000e-01
+9022.576559 aug 1 newton 10 eval 0.003375s E=5.634413448858e-02 grad_inf=1.209e-02 primal=1.319e-06
+9022.577694 aug 1 newton 10 linear 0.000802s solve step_inf=4.696e-01 directional=-8.076e-02
+9022.581028 aug 1 newton 10 line 0.003029s accepted=True line_count=1 alpha=1.000e+00
+9022.584706 aug 1 newton 11 eval 0.003313s E=1.192261545004e-02 grad_inf=2.995e-03 primal=9.542e-07
+9022.585927 aug 1 newton 11 linear 0.000903s solve step_inf=2.081e-01 directional=-4.420e-03
+9022.589594 aug 1 newton 11 line 0.003371s accepted=True line_count=1 alpha=1.000e+00
+9022.593436 aug 1 newton 12 eval 0.003545s E=9.506648639471e-03 grad_inf=4.720e-04 primal=7.583e-07
+9022.594529 aug 1 newton 12 linear 0.000658s solve step_inf=4.616e-02 directional=-1.356e-04
+9022.598032 aug 1 newton 12 line 0.003173s accepted=True line_count=1 alpha=1.000e+00
+9022.601427 aug 1 newton 13 eval 0.003085s E=9.436829989131e-03 grad_inf=2.128e-05 primal=7.088e-07
+9022.602948 aug 1 newton 13 linear 0.001206s solve step_inf=2.255e-03 directional=-3.031e-07
+9022.606612 aug 1 newton 13 line 0.003336s accepted=True line_count=1 alpha=1.000e+00
+9022.610081 aug 1 newton 14 eval 0.003147s E=9.436678222675e-03 grad_inf=5.092e-08 primal=7.062e-07
+9022.611058 aug 1 newton 14 linear 0.000693s solve step_inf=5.377e-06 directional=-1.750e-12
+9022.614822 aug 1 newton 14 line 0.003438s accepted=True line_count=1 alpha=1.000e+00
+9022.618555 aug 1 newton 15 eval 0.003432s E=9.436678221862e-03 grad_inf=1.869e-12 primal=7.062e-07
+9022.622018 aug 1 done 0.130695s primal=7.062e-07 stationarity=1.869e-12 total_newton=15
+9022.622633 aug 2 start
+9022.626034 aug 2 newton 1 eval 0.003059s E=9.436678221862e-03 grad_inf=7.062e-03 primal=7.062e-07
+9022.627357 aug 2 newton 1 linear 0.001043s solve step_inf=4.095e-07 directional=-9.426e-09
+9022.630805 aug 2 newton 1 line 0.003136s accepted=True line_count=1 alpha=1.000e+00
+9022.634851 aug 2 newton 2 eval 0.003691s E=9.436687647652e-03 grad_inf=1.869e-12 primal=4.244e-13
+9022.638397 aug 2 done 0.016005s primal=4.244e-13 stationarity=1.869e-12 total_newton=17
+9022.639349 aug 3 start
+9022.643176 aug 3 newton 1 eval 0.003475s E=9.436687647652e-03 grad_inf=4.245e-09 primal=4.244e-13
+9022.644449 aug 3 newton 1 linear 0.000978s solve step_inf=3.582e-13 directional=-6.207e-21
+9022.647682 aug 3 newton 1 line 0.002945s accepted=True line_count=1 alpha=1.000e+00
+9022.650922 aug 3 newton 2 eval 0.002945s E=9.436687647658e-03 grad_inf=1.446e-12 primal=2.220e-16
+9022.654198 aug 3 done 0.015469s primal=2.220e-16 stationarity=1.446e-12 total_newton=19
+9022.654841 aug 4 start
+9022.658395 aug 4 newton 1 eval 0.003195s E=9.436687647658e-03 grad_inf=3.666e-12 primal=2.220e-16
+9022.661948 aug 4 done 0.007429s primal=2.220e-16 stationarity=3.666e-12 total_newton=20
+9022.662670 aug 5 start
+9022.666342 aug 5 newton 1 eval 0.003353s E=9.436687647658e-03 grad_inf=5.887e-12 primal=2.220e-16
+9022.669658 aug 5 done 0.007352s primal=2.220e-16 stationarity=5.887e-12 total_newton=21
+9022.670280 aug 6 start
+9022.673628 aug 6 newton 1 eval 0.003032s E=9.436687647658e-03 grad_inf=8.107e-12 primal=2.220e-16
+9022.677073 aug 6 done 0.007094s primal=2.220e-16 stationarity=8.107e-12 total_newton=22
+9022.678058 aug 7 start
+9022.681641 aug 7 newton 1 eval 0.003260s E=9.436687647658e-03 grad_inf=1.033e-11 primal=2.220e-16
+9022.682946 aug 7 newton 1 linear 0.001003s solve step_inf=6.900e-14 directional=-3.986e-26
+9022.691974 aug 7 newton 1 line 0.008704s accepted=True line_count=3 alpha=2.500e-01
+9022.695236 aug 7 newton 2 eval 0.002953s E=9.436687647658e-03 grad_inf=8.107e-12 primal=1.110e-16
+9022.698538 aug 7 done 0.021129s primal=1.110e-16 stationarity=8.107e-12 total_newton=24

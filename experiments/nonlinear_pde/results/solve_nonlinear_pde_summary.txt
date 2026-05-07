@@ -1,0 +1,19 @@
+Timings (seconds):
+- TFPM-AugLag: 7.074089
+- FDM (N=32): 0.016489
+- FDM fine (N=16384): 7.065844
+
+Relative L2 errors vs FDM fine (N=16384):
+- TFPM-AugLag vs FDM fine (N=16384): 1.351425e-06
+- FDM (N=32) vs FDM fine (N=16384): 5.138054e-04
+
+Diagnostics:
+- TFPM-AugLag converged = True
+- FDM (N=32) converged = True
+- FDM fine (N=16384) converged = True
+- TFPM-AugLag Newton steps = 7
+- FDM (N=32) Newton steps = 6
+- FDM fine (N=16384) Newton steps = 9
+- TFPM-AugLag final Newton increment = 7.283063e-14
+- FDM (N=32) final Newton increment = 8.304468e-14
+- FDM fine (N=16384) final Newton increment = 6.428191e-13

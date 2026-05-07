@@ -1,0 +1,23 @@
+Timings (seconds):
+- Energy ALM: 0.338088
+- FDM Newton (N=10): 0.002770
+- FDM Newton fine (N=16384): 2.778351
+
+Relative L2 errors vs FDM Newton fine (N=16384):
+- Energy ALM vs FDM Newton fine (N=16384): 8.754061e+02
+- FDM Newton (N=10) vs FDM Newton fine (N=16384): 1.558176e-26
+
+Diagnostics:
+- FDM Newton equation is solved in the stretched coordinate y = x / epsilon.
+- Energy ALM converged = True
+- FDM Newton (N=10) converged = True
+- FDM Newton fine (N=16384) converged = True
+- Energy ALM space iterations = 3
+- FDM Newton (N=10) Newton steps = 5
+- FDM Newton fine (N=16384) Newton steps = 6
+- Energy ALM final energy = 2.500000000000e-01
+- Energy ALM final update = 2.675697e-08
+- Energy ALM final primal residual = 1.965944e-13
+- Energy ALM final stationarity = 6.955103e-25
+- FDM Newton (N=10) final update = 2.862679e-14
+- FDM Newton fine (N=16384) final update = 3.311280e-39

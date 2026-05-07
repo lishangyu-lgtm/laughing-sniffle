@@ -1,0 +1,6 @@
+4403.113218 config epsilon=0.02 num_elements=100 quad_n=12 n_seg_gauss=8 rho=10000.0 max_space_iter=40
+4403.113743 iter 1 start
+4403.114091 iter 1 make_newton_space_functions 0.000003s
+4403.285945 iter 1 build_elements 0.171496s
+4403.295864 iter 1 constraint_system 0.009426s C=(101, 200)
+4403.296323 iter 1 solve_energy_in_fixed_space start

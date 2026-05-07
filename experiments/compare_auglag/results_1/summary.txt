@@ -1,0 +1,148 @@
+@dataclass
+class ProblemConfig:
+    eps1: float = 1e-3
+    eps2: float = 1e-5
+    x_interface: float = 0.5
+    left_bc: float = 0.0
+    right_bc: float = 1.0
+    jump_u: float = 0.0
+    jump_flux: float = 1e-5
+    reference_source: str = "fdm"
+
+
+@dataclass
+class NumericalConfig:
+    n_elements: int = 100
+    n_ref: int = 1000000
+    n_fdm: int = 100
+    n_fem: int = 100
+    quad_n: int = 10
+    n_seg_gauss: int = 8
+    plot_per_element: int = 250
+    fdm_plot_cells: int = 20
+    fem_plot_cells: int = 20
+    error_samples: int = 4000
+
+    # Retained for compatibility with older experiments.
+    use_true_c_lagrange: bool = True
+    use_true_c_auglag: bool = True
+    flux_jump_average: str = "eps_weighted"
+
+    auglag_rho: float = 10
+    auglag_max_iter: int = 100000
+    auglag_tol_primal: float = 1e-10
+    auglag_tol_stationarity: float = 1e-10
+    auglag_relax: float = 1.0
+    auglag_verbose: bool = False
+
+
+
+@dataclass
+class OutputConfig:
+    output_dir: Path = field(default_factory=lambda: Path(__file__).resolve().parent / "results")
+    save_plots: bool = True
+
+
+@dataclass
+class ExperimentConfig:
+    problem: ProblemConfig = field(default_factory=ProblemConfig)
+    numerical: NumericalConfig = field(default_factory=NumericalConfig)
+    output: OutputConfig = field(default_factory=OutputConfig)
+
+
+DEFAULT_EXPERIMENT = ExperimentConfig()
+
+
+def normalize_flux_jump_average(mode: str) -> str:
+    normalized = str(mode).strip().lower().replace("-", "_").replace(" ", "_")
+    aliases = {
+        "equal": "equal",
+        "eps": "eps_weighted",
+        "eps_weighted": "eps_weighted",
+    }
+    try:
+        return aliases[normalized]
+    except KeyError as exc:
+        supported = ", ".join(sorted(aliases))
+        raise ValueError(
+            f"Unsupported numerical.flux_jump_average={mode!r}. Supported values: {supported}."
+        ) from exc
+
+
+def flux_jump_average_weights(config: ProblemConfig, mode: str) -> tuple[float, float]:
+    normalized = normalize_flux_jump_average(mode)
+    if normalized == "equal":
+        return 0.5, 0.5
+
+    denom = float(config.eps1 + config.eps2)
+    if not np.isfinite(denom) or np.isclose(denom, 0.0, atol=1e-15, rtol=1e-15):
+        raise ValueError("eps1 + eps2 must be finite and nonzero for eps-weighted averaging.")
+
+    return float(config.eps2 / denom), float(config.eps1 / denom)
+
+
+def make_coefficient(config: ProblemConfig) -> Callable[[np.ndarray], np.ndarray]:
+    xI = config.x_interface
+
+    def c_func(x: np.ndarray) -> np.ndarray:
+        x = np.asarray(x, dtype=np.float64)
+        left = 10*np.log(x+1)    # _coefficient_left(x)
+        right = np.exp(2*x)     # _coefficient_right(x)
+        return np.where(x <= xI, left, right)
+
+    return c_func
+
+
+def make_rhs(config: ProblemConfig) -> Callable[[np.ndarray], np.ndarray]:
+    xI = config.x_interface
+    c_func = make_coefficient(config)
+
+    def f_func(x: np.ndarray) -> np.ndarray:
+        x = np.asarray(x, dtype=np.float64)
+        # u = np.where(x <= xI, _exact_left(x), _exact_right(x))
+        # u_xx = np.where(x <= xI, _exact_second_left(x), _exact_second_right(x))
+        # return -_eps_piecewise(x, config) * u_xx + c_func(x) * u
+        return np.ones_like(x)
+    return f_func
+
+
+
+
+
+
+
+
+
+Timings (seconds):
+- build_elements: 0.121365
+- tfpm_strong_solve: 0.001300
+- auglag_assemble: 0.009265
+- auglag_solve: 0.000532
+- fdm_reference_solve_total: 31.515032
+- fdm_solve_total: 0.008372
+- fem_assemble: 0.010650
+- fem_solve: 0.000127
+
+Relative L2 errors vs FDM fine:
+- TFPM-Strong vs FDM fine: 5.667727e-05
+- AugLag vs FDM fine: 1.056008e-05
+- FDM vs FDM fine: 8.069061e-02
+- FEM vs FDM fine: 7.113090e-02
+
+Relative H^1 errors vs FDM fine:
+- TFPM-Strong vs FDM fine: 3.250049e-04
+- AugLag vs FDM fine: 3.317153e-04
+
+Diagnostics:
+- Reference source = FDM fine
+- Transformed interval = [0.000000e+00, 5.050000e+04]
+- Transformed interface yI = 5.000000e+02
+- TFPM grid split: left elements = 50, right elements = 50
+- AugLag flux-jump average = eps_weighted (left=9.900990e-03, right=9.900990e-01)
+- AugLag final iter = 4
+- AugLag final primal residual = 1.136829e-09
+- AugLag final stationarity residual = 2.498645e-07
+- TFPM interface [u] residual = 5.551115e-17
+- TFPM interface [eps u'] residual = 2.034573e-18
+- AugLag interface [u] residual = 1.001754e-12
+- AugLag interface [eps u'] residual = 5.323526e-09

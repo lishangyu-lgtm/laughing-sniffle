@@ -1,0 +1,29 @@
+Steady Allen-Cahn Newton-space nonlinear energy ALM summary
+equation = -epsilon^2 u'' + u^3 - u = 0
+energy = int 0.5 epsilon^2 |u'|^2 + 0.25 (u^2 - 1)^2 dx
+converged = True
+elapsed_seconds = 3.38087700e-01
+interval = [-5.000000000000e-01, 5.000000000000e-01]
+x_interface = 0.000000000000e+00
+epsilon = 5.000000000000e-01
+coordinate_transform = y = x / epsilon
+transformed_interval = [-1.000000000000e+00, 1.000000000000e+00]
+transformed_interface = 0.000000000000e+00
+left_bc = 0.000000000000e+00
+right_bc = 0.000000000000e+00
+num_elements = 10
+initial_guess_kind = smooth_periodic
+space_iterations = 3
+final_energy = 2.500000000000e-01
+final_energy_delta = 9.658940314239e-15
+final_step_inf = 2.675696812446e-08
+final_primal_inf = 1.965944459569e-13
+final_stationarity_inf = 6.955102611408e-25
+final_aug_lag_iters = 1
+final_inner_newton_iters = 2
+final_inner_converged = True
+
+iteration,energy,energy_delta,step_inf,primal_inf,stationarity_inf,aug_lag_iters,inner_newton_iters
+1,2.514506160324e-01,inf,9.934267255083e-01,8.695880782177e-12,6.071532165919e-17,5,12
+2,2.500000000000e-01,1.450616032355e-03,1.518932445422e-02,9.514802592678e-12,3.805030817744e-23,5,11
+3,2.500000000000e-01,9.658940314239e-15,2.675696812446e-08,1.965944459569e-13,6.955102611408e-25,1,2
