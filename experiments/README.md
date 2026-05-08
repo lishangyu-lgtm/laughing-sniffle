@@ -3,7 +3,7 @@
 Each experiment lives in its own folder, so its setup, runnable script, and
 default outputs stay together.
 
-- `compare_auglag/`
+- `compare_auglag/` (legacy folder name; direct Lagrange solve)
   Files: `problem.py`, `analysis_plot.py`, `run_compare_auglag.py`, `results/`
 - `allen_cahn_evolution/`
   Files: `README.md`, `problem.py`, `analysis_plot.py`, `run_allen_cahn_evolution.py`, `results/`
@@ -13,7 +13,7 @@ default outputs stay together.
   Files: `analysis_plot.py`, `solve_nonlinear_pde.py`, `results/`
 - `steady_allen_cahn_energy_alm/`
   Files: `README.md`, `solve_steady_allen_cahn_energy_alm.py`, `results/`
-- `penalty_vs_auglag/`
+- `penalty_vs_auglag/` (legacy folder name; penalty vs direct Lagrange)
   Files: `problem.py`, `analysis_plot.py`, `run_penalty_vs_auglag.py`, `results/`
 
 Suggested rule for future additions:

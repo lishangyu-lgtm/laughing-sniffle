@@ -1,1 +1,1 @@
-"""Linear comparison experiment for TFPM/AugLag against FDM and FEM."""
+"""Linear comparison experiment for TFPM-Lagrange against FDM and FEM."""

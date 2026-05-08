@@ -1,1 +1,1 @@
-"""Core TFPM/AugLag solvers and shared problem definitions."""
+"""Core TFPM/Lagrange solvers and shared problem definitions."""

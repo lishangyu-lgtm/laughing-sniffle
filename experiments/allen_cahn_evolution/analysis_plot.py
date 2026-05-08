@@ -75,7 +75,7 @@ def write_summary(
     result_lines: Iterable[str],
     output_lines: Iterable[str],
 ) -> None:
-    lines = ["Allen-Cahn time-evolution TFPM/AugLag experiment", ""]
+    lines = ["Allen-Cahn time-evolution TFPM-Lagrange experiment", ""]
     lines.append("Configuration:")
     lines.extend(f"- {line}" for line in config_lines)
     lines.append("")

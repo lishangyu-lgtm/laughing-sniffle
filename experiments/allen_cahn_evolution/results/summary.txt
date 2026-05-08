@@ -1,4 +1,4 @@
-Allen-Cahn time-evolution TFPM/AugLag experiment
+Allen-Cahn time-evolution TFPM-Lagrange experiment
 
 Configuration:
 - domain = [0.0, 1.0], x_interface = 0.5
@@ -8,29 +8,29 @@ Configuration:
 - n_elements = 50, monitor_segments = 800
 - tfpm_basis = endpoint_auto
 - time interval = [0.0, 2.0], dt = 0.1
-- auglag rho = 100.0, tolerances = (1e-10, 1e-10)
+- lagrange residual tolerance = 1e-10
 - reference = BDF FDM, N=2000, rtol=1e-08, atol=1e-10, max_step=0.01, comparison_samples=2000
 
 Results:
-- FDM reference (BDF, N=2000) elapsed = 0.053032 s
+- FDM reference (BDF, N=2000) elapsed = 0.057175 s
 - FDM reference (BDF, N=2000) nfev = 472, njev = 1, nlu = 14
 - FDM reference (BDF, N=2000) final energy = 4.96010650e-02
 - Scheme I completed = True, all inner converged = True
-- Scheme I steps = 20, elapsed = 2.390117 s
+- Scheme I steps = 20, elapsed = 2.253688 s
 - Scheme I final time = 2.00000000e+00, final energy = 5.08951511e-02
-- Scheme I final step_l2 = 1.62270468e-02, total AugLag iterations = 1224
-- Scheme I final relative L2 vs FDM reference (BDF, N=2000) = 1.17733916e-02
+- Scheme I final step_l2 = 1.62270468e-02, total Lagrange KKT solves = 20
+- Scheme I final relative L2 vs FDM reference (BDF, N=2000) = 1.17733917e-02
 - Scheme I final relative Linf vs FDM reference (BDF, N=2000) = 2.77677333e-02
 - Scheme II completed = True, all inner converged = True
-- Scheme II steps = 20, elapsed = 59.311423 s
+- Scheme II steps = 20, elapsed = 59.018641 s
 - Scheme II final time = 2.00000000e+00, final energy = 5.33969824e-02
-- Scheme II final step_l2 = 1.55574890e-02, total AugLag iterations = 11859
+- Scheme II final step_l2 = 1.55574890e-02, total Lagrange KKT solves = 180
 - Scheme II final relative L2 vs FDM reference (BDF, N=2000) = 2.74420680e-02
 - Scheme II final relative Linf vs FDM reference (BDF, N=2000) = 4.94982735e-02
 - Scheme III completed = True, all inner converged = True
-- Scheme III steps = 20, elapsed = 43.446966 s
+- Scheme III steps = 20, elapsed = 44.376324 s
 - Scheme III final time = 2.00000000e+00, final energy = 4.98856274e-02
-- Scheme III final step_l2 = 1.63313282e-02, total AugLag iterations = 8915
+- Scheme III final step_l2 = 1.63313282e-02, total Lagrange KKT solves = 123
 - Scheme III final relative L2 vs FDM reference (BDF, N=2000) = 2.12841909e-03
 - Scheme III final relative Linf vs FDM reference (BDF, N=2000) = 4.55826023e-03
 

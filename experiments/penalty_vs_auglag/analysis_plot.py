@@ -13,7 +13,7 @@ _METHOD_PLOT_STYLES: dict[str, dict[str, object]] = {
         "linewidth": 2.2,
         "zorder": 1,
     },
-    "AugLag": {
+    "Lagrange": {
         "color": "tab:blue",
         "linestyle": "-",
         "linewidth": 2.0,
@@ -289,7 +289,7 @@ def plot_solutions(
         curves=curves,
         xlim=(x_min, x_max),
         xI=xI,
-        title="Penalty vs AugLag Solution Comparison",
+        title="Penalty vs Lagrange Solution Comparison",
         y_label="u(x)",
     )
 

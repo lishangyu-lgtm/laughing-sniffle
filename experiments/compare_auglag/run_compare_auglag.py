@@ -30,7 +30,7 @@ from ...baselines.fem_solver import (
 )
 from ...core.methods_tfpm import (
     assemble_lagrange_kkt_system,
-    solve_augmented_lagrange,
+    solve_lagrange_kkt,
     solve_tfpm_strong_matching,
 )
 from ...core.tfpm_local import (
@@ -167,8 +167,8 @@ def _split_plot_curve_at_interface(
 
 def _plot_series(
     reference_label: str,
-    x_plot_aug: np.ndarray,
-    u_plot_aug: np.ndarray,
+    x_plot_lagrange: np.ndarray,
+    u_plot_lagrange: np.ndarray,
     x_plot_ref: np.ndarray,
     u_plot_ref: np.ndarray,
     x_plot_fdm: np.ndarray,
@@ -178,7 +178,7 @@ def _plot_series(
 ) -> list[tuple[str, np.ndarray, np.ndarray]]:
     return [
         (reference_label, x_plot_ref, u_plot_ref),
-        ("AugLag", x_plot_aug, u_plot_aug),
+        ("Lagrange", x_plot_lagrange, u_plot_lagrange),
         ("FDM", x_plot_fdm, u_plot_fdm),
         ("FEM", x_plot_fem, u_plot_fem),
     ]
@@ -253,14 +253,8 @@ def _summary_config_sections(cfg, num, out_dir: Path, save_plots: bool) -> list[
                 "fem_plot_cells": num.fem_plot_cells,
                 "error_samples": num.error_samples,
                 "use_true_c_lagrange": num.use_true_c_lagrange,
-                "use_true_c_auglag": num.use_true_c_auglag,
+                "lagrange_residual_tol": num.lagrange_residual_tol,
                 "flux_jump_average": num.flux_jump_average,
-                "auglag_rho": num.auglag_rho,
-                "auglag_max_iter": num.auglag_max_iter,
-                "auglag_tol_primal": num.auglag_tol_primal,
-                "auglag_tol_stationarity": num.auglag_tol_stationarity,
-                "auglag_relax": num.auglag_relax,
-                "auglag_verbose": num.auglag_verbose,
             },
         ),
         (
@@ -336,7 +330,7 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
     timings["tfpm_strong_solve"] = time.perf_counter() - t1
 
     t2 = time.perf_counter()
-    _K, _rhs, H, l, C, d = assemble_lagrange_kkt_system(
+    K, rhs, H, l, C, d = assemble_lagrange_kkt_system(
         grid=grid,
         elems=elems,
         f_func=y_f_func,
@@ -346,25 +340,22 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
         jump_du=cfg.jump_flux,
         xI=y_interface,
         c_func=y_c_func,
-        use_true_c=num.use_true_c_auglag,
+        use_true_c=num.use_true_c_lagrange,
         flux_jump_weights=(flux_left_weight, flux_right_weight),
     )
-    timings["auglag_assemble"] = time.perf_counter() - t2
+    timings["lagrange_assemble"] = time.perf_counter() - t2
 
     t3 = time.perf_counter()
-    z_auglag, lam, aug_history = solve_augmented_lagrange(
+    z_lagrange, lam, lagrange_history = solve_lagrange_kkt(
+        K=K,
+        rhs=rhs,
         H=H,
         l=l,
         C=C,
         d=d,
-        rho=num.auglag_rho,
-        max_iter=num.auglag_max_iter,
-        tol_primal=num.auglag_tol_primal,
-        tol_stationarity=num.auglag_tol_stationarity,
-        relax=num.auglag_relax,
-        verbose=num.auglag_verbose,
+        residual_tol=num.lagrange_residual_tol,
     )
-    timings["auglag_solve"] = time.perf_counter() - t3
+    timings["lagrange_solve"] = time.perf_counter() - t3
 
     sol_fdm_ref = None
     exact_reference = None
@@ -448,18 +439,18 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
         xI=y_interface,
         n_seg_gauss=num.n_seg_gauss,
     )
-    aug_left, aug_du_left_transformed = evaluate_tfpm_state_on_side(
+    lagrange_left, lagrange_du_left_transformed = evaluate_tfpm_state_on_side(
         elems,
-        z_auglag,
+        z_lagrange,
         y_f_func,
         y_left,
         side="left",
         xI=y_interface,
         n_seg_gauss=num.n_seg_gauss,
     )
-    aug_right, aug_du_right_transformed = evaluate_tfpm_state_on_side(
+    lagrange_right, lagrange_du_right_transformed = evaluate_tfpm_state_on_side(
         elems,
-        z_auglag,
+        z_lagrange,
         y_f_func,
         y_right,
         side="right",
@@ -501,9 +492,9 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
         tfpm_du_right_transformed,
         cfg,
     )
-    aug_du_left, aug_du_right = _transformed_to_physical_derivative(
-        aug_du_left_transformed,
-        aug_du_right_transformed,
+    lagrange_du_left, lagrange_du_right = _transformed_to_physical_derivative(
+        lagrange_du_left_transformed,
+        lagrange_du_right_transformed,
         cfg,
     )
     fem_du_left, fem_du_right = _transformed_to_physical_derivative(
@@ -515,7 +506,7 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
     reference_values = (ref_left, ref_right)
     method_values = {
         "TFPM-Strong": (tfpm_left, tfpm_right),
-        "AugLag": (aug_left, aug_right),
+        "Lagrange": (lagrange_left, lagrange_right),
         "FDM": (fdm_left, fdm_right),
         "FEM": (fem_left, fem_right),
     }
@@ -533,13 +524,13 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
         reference_derivatives=(ref_du_left, ref_du_right),
         method_values={
             "TFPM-Strong": (tfpm_left, tfpm_right),
-            "AugLag": (aug_left, aug_right),
+            "Lagrange": (lagrange_left, lagrange_right),
             "FDM": (fdm_left, fdm_right),
             "FEM": (fem_left, fem_right),
         },
         method_derivatives={
             "TFPM-Strong": (tfpm_du_left, tfpm_du_right),
-            "AugLag": (aug_du_left, aug_du_right),
+            "Lagrange": (lagrange_du_left, lagrange_du_right),
             "FDM": (fdm_du_left, fdm_du_right),
             "FEM": (fem_du_left, fem_du_right),
         },
@@ -564,18 +555,18 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
         xI=y_interface,
         n_seg_gauss=num.n_seg_gauss,
     )
-    aug_uL_I, aug_duL_I = evaluate_tfpm_state_on_side(
+    lagrange_uL_I, lagrange_duL_I = evaluate_tfpm_state_on_side(
         elems,
-        z_auglag,
+        z_lagrange,
         y_f_func,
         np.array([y_interface], dtype=np.float64),
         side="left",
         xI=y_interface,
         n_seg_gauss=num.n_seg_gauss,
     )
-    aug_uR_I, aug_duR_I = evaluate_tfpm_state_on_side(
+    lagrange_uR_I, lagrange_duR_I = evaluate_tfpm_state_on_side(
         elems,
-        z_auglag,
+        z_lagrange,
         y_f_func,
         np.array([y_interface], dtype=np.float64),
         side="right",
@@ -584,9 +575,9 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
     )
 
     if out.save_plots:
-        y_plot_aug, u_plot_aug = evaluate_solution_fine(
+        y_plot_lagrange, u_plot_lagrange = evaluate_solution_fine(
             elems=elems,
-            z=z_auglag,
+            z=z_lagrange,
             f_func=y_f_func,
             points_per_element=num.plot_per_element,
             n_seg_gauss=num.n_seg_gauss,
@@ -598,13 +589,13 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
             x_plot_ref = y_to_x(y_plot_ref, cfg)
         else:
             x_plot_ref, u_plot_ref = _exact_plot_arrays(exact_reference, cfg, num.error_samples)
-        x_plot_aug = y_to_x(y_plot_aug, cfg)
-        x_plot_aug, u_plot_aug = _split_plot_curve_at_interface(
-            x_plot=x_plot_aug,
-            u_plot=u_plot_aug,
+        x_plot_lagrange = y_to_x(y_plot_lagrange, cfg)
+        x_plot_lagrange, u_plot_lagrange = _split_plot_curve_at_interface(
+            x_plot=x_plot_lagrange,
+            u_plot=u_plot_lagrange,
             x_interface=cfg.x_interface,
-            u_left_interface=float(aug_uL_I[0]),
-            u_right_interface=float(aug_uR_I[0]),
+            u_left_interface=float(lagrange_uL_I[0]),
+            u_right_interface=float(lagrange_uR_I[0]),
         )
         x_plot_fdm = y_to_x(y_plot_fdm, cfg)
         x_plot_fem = y_to_x(y_plot_fem, cfg)
@@ -612,8 +603,8 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
         plot_solutions(
             _plot_series(
                 reference_label,
-                x_plot_aug,
-                u_plot_aug,
+                x_plot_lagrange,
+                u_plot_lagrange,
                 x_plot_ref,
                 u_plot_ref,
                 x_plot_fdm,
@@ -637,8 +628,8 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
 
     tfpm_u_jump = float(tfpm_uR_I[0] - tfpm_uL_I[0])
     tfpm_flux_jump = float(tfpm_duR_I[0] - tfpm_duL_I[0])
-    aug_u_jump = float(aug_uR_I[0] - aug_uL_I[0])
-    aug_flux_jump = float(aug_duR_I[0] - aug_duL_I[0])
+    lagrange_u_jump = float(lagrange_uR_I[0] - lagrange_uL_I[0])
+    lagrange_flux_jump = float(lagrange_duR_I[0] - lagrange_duL_I[0])
 
     diagnostics = [
         f"Reference source = {reference_label}",
@@ -646,16 +637,16 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
         f"Transformed interface yI = {y_interface:.6e}",
         f"TFPM grid split: left elements = {n_left_tfpm}, right elements = {n_right_tfpm}",
         (
-            "AugLag flux-jump average = "
+            "Lagrange flux-jump average = "
             f"{flux_jump_average} (left={flux_left_weight:.6e}, right={flux_right_weight:.6e})"
         ),
-        f"AugLag final iter = {aug_history.iter}",
-        f"AugLag final primal residual = {aug_history.primal_inf:.6e}",
-        f"AugLag final stationarity residual = {aug_history.stationarity_inf:.6e}",
+        f"Lagrange KKT residual = {lagrange_history.residual_inf:.6e}",
+        f"Lagrange final primal residual = {lagrange_history.primal_inf:.6e}",
+        f"Lagrange final stationarity residual = {lagrange_history.stationarity_inf:.6e}",
         f"TFPM interface [u] residual = {abs(tfpm_u_jump - cfg.jump_u):.6e}",
         f"TFPM interface [eps u'] residual = {abs(tfpm_flux_jump - cfg.jump_flux):.6e}",
-        f"AugLag interface [u] residual = {abs(aug_u_jump - cfg.jump_u):.6e}",
-        f"AugLag interface [eps u'] residual = {abs(aug_flux_jump - cfg.jump_flux):.6e}",
+        f"Lagrange interface [u] residual = {abs(lagrange_u_jump - cfg.jump_u):.6e}",
+        f"Lagrange interface [eps u'] residual = {abs(lagrange_flux_jump - cfg.jump_flux):.6e}",
     ]
 
     write_summary(

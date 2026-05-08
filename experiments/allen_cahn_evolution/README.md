@@ -7,7 +7,7 @@ u_t - (eps(x)^2 u_x)_x + u^3 - u = 0
 ```
 
 with Dirichlet boundary data and optional interface jumps. The implementation is
-self-contained in this folder and only reuses the shared TFPM/AugLag kernel from
+self-contained in this folder and only reuses the shared TFPM-Lagrange kernel from
 `tfpm_compare_suite_auglag.core`.
 
 Run all three schemes:

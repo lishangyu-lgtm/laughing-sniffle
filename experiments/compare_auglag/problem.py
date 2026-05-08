@@ -89,14 +89,8 @@ class NumericalConfig:
     fem_plot_cells: int = 20
     error_samples: int = 4000
     use_true_c_lagrange: bool = True
-    use_true_c_auglag: bool = True
+    lagrange_residual_tol: float = 1e-10
     flux_jump_average: str = "eps_weighted"
-    auglag_rho: float = 10
-    auglag_max_iter: int = 100000
-    auglag_tol_primal: float = 1e-10
-    auglag_tol_stationarity: float = 1e-10
-    auglag_relax: float = 1.0
-    auglag_verbose: bool = False
 
 
 @dataclass

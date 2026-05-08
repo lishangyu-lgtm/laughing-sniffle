@@ -12,7 +12,7 @@ _METHOD_PLOT_STYLES: dict[str, dict[str, object]] = {
         "linewidth": 2.2,
         "zorder": 1,
     },
-    "TFPM-AugLag": {
+    "TFPM-Lagrange": {
         "color": "tab:blue",
         "linestyle": "-",
         "linewidth": 2.0,
@@ -38,8 +38,8 @@ _METHOD_PLOT_STYLES: dict[str, dict[str, object]] = {
 def _resolve_style_key(name: str, reference_label: str | None = None) -> str:
     if reference_label is not None and name == reference_label:
         return "__reference__"
-    if name == "TFPM-AugLag":
-        return "TFPM-AugLag"
+    if name == "TFPM-Lagrange":
+        return "TFPM-Lagrange"
     if name.startswith("FDM"):
         return "FDM"
     return "__default__"

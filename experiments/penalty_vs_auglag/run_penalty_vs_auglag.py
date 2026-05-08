@@ -17,7 +17,7 @@ if __package__ is None or __package__ == "":
 
 from ...core.methods_tfpm import (
     assemble_lagrange_kkt_system,
-    solve_augmented_lagrange,
+    solve_lagrange_kkt,
     solve_penalty_method,
 )
 from ...core.tfpm_local import (
@@ -318,7 +318,7 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
 
     if str(cfg.reference_source).strip().lower() != "exact":
         raise ValueError(
-            "This quick penalty-vs-auglag experiment currently expects "
+            "This quick penalty-vs-lagrange experiment currently expects "
             "problem.reference_source = 'exact'."
         )
 
@@ -358,7 +358,7 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
     timings["build_elements"] = time.perf_counter() - t0
 
     t1 = time.perf_counter()
-    _K_aug, _rhs_aug, H_aug, l_aug, C_aug, d_aug = assemble_lagrange_kkt_system(
+    K_lagrange, rhs_lagrange, H_lagrange, l_lagrange, C_lagrange, d_lagrange = assemble_lagrange_kkt_system(
         grid=grid,
         elems=elems,
         f_func=y_f_func,
@@ -368,10 +368,10 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
         jump_du=cfg.jump_flux,
         xI=y_interface,
         c_func=y_c_func,
-        use_true_c=num.use_true_c_auglag,
+        use_true_c=num.use_true_c_lagrange,
         flux_jump_weights=(flux_left_weight, flux_right_weight),
     )
-    timings["auglag_system_assemble"] = time.perf_counter() - t1
+    timings["lagrange_system_assemble"] = time.perf_counter() - t1
 
     t1b = time.perf_counter()
     _K_pen, _rhs_pen, H_pen, l_pen, C_pen, d_pen = assemble_lagrange_kkt_system(
@@ -390,19 +390,16 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
     timings["penalty_system_assemble"] = time.perf_counter() - t1b
 
     t2 = time.perf_counter()
-    z_auglag, lam_auglag, aug_history = solve_augmented_lagrange(
-        H=H_aug,
-        l=l_aug,
-        C=C_aug,
-        d=d_aug,
-        rho=num.auglag_rho,
-        max_iter=num.auglag_max_iter,
-        tol_primal=num.auglag_tol_primal,
-        tol_stationarity=num.auglag_tol_stationarity,
-        relax=num.auglag_relax,
-        verbose=num.auglag_verbose,
+    z_lagrange, lam_lagrange, lagrange_history = solve_lagrange_kkt(
+        K=K_lagrange,
+        rhs=rhs_lagrange,
+        H=H_lagrange,
+        l=l_lagrange,
+        C=C_lagrange,
+        d=d_lagrange,
+        residual_tol=num.lagrange_residual_tol,
     )
-    timings["auglag_solve"] = time.perf_counter() - t2
+    timings["lagrange_solve"] = time.perf_counter() - t2
 
     penalty_runs: list[dict[str, object]] = []
     for gamma in penalty_gammas:
@@ -428,7 +425,7 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
 
     exact_reference = make_exact_reference(cfg)
     if exact_reference is None:
-        raise ValueError("make_exact_reference(...) returned None for the penalty-vs-auglag experiment.")
+        raise ValueError("make_exact_reference(...) returned None for the penalty-vs-lagrange experiment.")
     reference_label = exact_reference.label
 
     x_left = np.linspace(X_DOMAIN[0], cfg.x_interface, num.error_samples)
@@ -436,9 +433,9 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
     y_left = x_to_y(x_left, cfg)
     y_right = x_to_y(x_right, cfg)
 
-    (aug_left, aug_right), (aug_du_left, aug_du_right) = _evaluate_method_on_grid(
+    (lagrange_left, lagrange_right), (lagrange_du_left, lagrange_du_right) = _evaluate_method_on_grid(
         elems=elems,
-        z=z_auglag,
+        z=z_lagrange,
         y_f_func=y_f_func,
         y_left=y_left,
         y_right=y_right,
@@ -456,10 +453,10 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
 
     reference_values = (ref_left, ref_right)
     method_values = {
-        "AugLag": (aug_left, aug_right),
+        "Lagrange": (lagrange_left, lagrange_right),
     }
     method_derivatives = {
-        "AugLag": (aug_du_left, aug_du_right),
+        "Lagrange": (lagrange_du_left, lagrange_du_right),
     }
     for penalty_run in penalty_runs:
         label = str(penalty_run["label"])
@@ -499,9 +496,9 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
         common_values=method_values,
     )
 
-    aug_uL_I, aug_uR_I, aug_duL_I, aug_duR_I = _evaluate_interface_state(
+    lagrange_uL_I, lagrange_uR_I, lagrange_duL_I, lagrange_duR_I = _evaluate_interface_state(
         elems=elems,
-        z=z_auglag,
+        z=z_lagrange,
         y_f_func=y_f_func,
         y_interface=y_interface,
         n_seg_gauss=num.n_seg_gauss,
@@ -521,17 +518,17 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
 
     if out.save_plots:
         x_plot_ref, u_plot_ref = _exact_plot_arrays(exact_reference, cfg, num.error_samples)
-        x_plot_aug, u_plot_aug = _evaluate_plot_curve(
+        x_plot_lagrange, u_plot_lagrange = _evaluate_plot_curve(
             elems=elems,
-            z=z_auglag,
+            z=z_lagrange,
             y_f_func=y_f_func,
             cfg=cfg,
             plot_per_element=num.plot_per_element,
             n_seg_gauss=num.n_seg_gauss,
-            u_left_interface=aug_uL_I,
-            u_right_interface=aug_uR_I,
+            u_left_interface=lagrange_uL_I,
+            u_right_interface=lagrange_uR_I,
         )
-        method_plot_series = [("AugLag", x_plot_aug, u_plot_aug)]
+        method_plot_series = [("Lagrange", x_plot_lagrange, u_plot_lagrange)]
         for penalty_run in penalty_runs:
             x_plot_pen, u_plot_pen = _evaluate_plot_curve(
                 elems=elems,
@@ -566,8 +563,8 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
             reference_label=reference_label,
         )
 
-    aug_u_jump = aug_uR_I - aug_uL_I
-    aug_flux_jump = aug_duR_I - aug_duL_I
+    lagrange_u_jump = lagrange_uR_I - lagrange_uL_I
+    lagrange_flux_jump = lagrange_duR_I - lagrange_duL_I
 
     diagnostics = [
         f"Reference source = {reference_label}",
@@ -578,13 +575,12 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
             "Flux-jump average = "
             f"{flux_jump_average} (left={flux_left_weight:.6e}, right={flux_right_weight:.6e})"
         ),
-        f"AugLag rho = {num.auglag_rho:.6e}",
-        f"AugLag final iter = {aug_history.iter}",
-        f"AugLag final primal residual = {aug_history.primal_inf:.6e}",
-        f"AugLag final stationarity residual = {aug_history.stationarity_inf:.6e}",
-        f"AugLag approximate lambda inf = {float(np.max(np.abs(lam_auglag))):.6e}",
-        f"AugLag interface [u] residual = {abs(aug_u_jump - cfg.jump_u):.6e}",
-        f"AugLag interface [eps u'] residual = {abs(aug_flux_jump - cfg.jump_flux):.6e}",
+        f"Lagrange KKT residual = {lagrange_history.residual_inf:.6e}",
+        f"Lagrange final primal residual = {lagrange_history.primal_inf:.6e}",
+        f"Lagrange final stationarity residual = {lagrange_history.stationarity_inf:.6e}",
+        f"Lagrange lambda inf = {float(np.max(np.abs(lam_lagrange))):.6e}",
+        f"Lagrange interface [u] residual = {abs(lagrange_u_jump - cfg.jump_u):.6e}",
+        f"Lagrange interface [eps u'] residual = {abs(lagrange_flux_jump - cfg.jump_flux):.6e}",
     ]
     if len(penalty_gammas) > 1:
         diagnostics.append(

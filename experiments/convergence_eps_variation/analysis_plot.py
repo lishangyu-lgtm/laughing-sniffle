@@ -20,7 +20,7 @@ DEFAULT_SELECTIONS = [
 DEFAULT_MAX_N_TO_SHOW = 256
 
 _METHOD_PLOT_STYLES: dict[str, dict[str, object]] = {
-    "AugLag-L2": {
+    "Lagrange-L2": {
         "color": "tab:blue",
         "linestyle": "-",
         "linewidth": 2.0,
@@ -30,7 +30,7 @@ _METHOD_PLOT_STYLES: dict[str, dict[str, object]] = {
         "markeredgewidth": 1.0,
         "zorder": 3,
     },
-    "AugLag-EpsNorm": {
+    "Lagrange-EpsNorm": {
         "color": "tab:green",
         "linestyle": "-",
         "linewidth": 2.0,
@@ -55,9 +55,9 @@ class RunRow:
     h: float
     tfpm_l2: float
     tfpm_eps_norm: float
-    auglag_l2: float
-    auglag_eps_norm: float
-    auglag_iter: int
+    lagrange_l2: float
+    lagrange_eps_norm: float
+    lagrange_iter: int
 
 
 @dataclass(frozen=True)
@@ -187,9 +187,9 @@ def _parse_summary(summary_path: Path) -> dict[tuple[str, str], CaseSummary]:
                     h=float(parts[1]),
                     tfpm_l2=float(parts[2]),
                     tfpm_eps_norm=float(parts[4]),
-                    auglag_l2=float(parts[6]),
-                    auglag_eps_norm=float(parts[8]),
-                    auglag_iter=int(parts[10]),
+                    lagrange_l2=float(parts[6]),
+                    lagrange_eps_norm=float(parts[8]),
+                    lagrange_iter=int(parts[10]),
                 )
             )
             i += 1
@@ -216,27 +216,27 @@ def _setup_axis(ax: plt.Axes, title: str) -> None:
     ax.grid(True, which="major", alpha=0.28)
 
 
-def _plot_auglag_summary(
+def _plot_lagrange_summary(
     ax: plt.Axes,
     n_values: np.ndarray,
-    auglag_l2: np.ndarray,
-    auglag_eps: np.ndarray,
+    lagrange_l2: np.ndarray,
+    lagrange_eps: np.ndarray,
     title: str,
     y_label: str,
     l2_order: float,
     eps_order: float,
     reference_note: str,
 ) -> None:
-    ax.plot(n_values, auglag_l2, label=r"AugLag $L^2$", **_METHOD_PLOT_STYLES["AugLag-L2"])
+    ax.plot(n_values, lagrange_l2, label=r"Lagrange $L^2$", **_METHOD_PLOT_STYLES["Lagrange-L2"])
     ax.plot(
         n_values,
-        auglag_eps,
-        label=r"AugLag eps-weighted $H^1$",
-        **_METHOD_PLOT_STYLES["AugLag-EpsNorm"],
+        lagrange_eps,
+        label=r"Lagrange eps-weighted $H^1$",
+        **_METHOD_PLOT_STYLES["Lagrange-EpsNorm"],
     )
 
-    l2_ref = _reference_curve(n_values, auglag_l2, order=l2_order)
-    eps_ref = _reference_curve(n_values, auglag_eps, order=eps_order)
+    l2_ref = _reference_curve(n_values, lagrange_l2, order=l2_order)
+    eps_ref = _reference_curve(n_values, lagrange_eps, order=eps_order)
     ax.plot(
         n_values,
         l2_ref,
@@ -276,21 +276,21 @@ def _plot_auglag_summary(
 
 def plot_case_summary(case_summary: CaseSummary, save_path: Path) -> None:
     n_values = np.array([run.n_elements for run in case_summary.runs], dtype=np.float64)
-    auglag_l2 = np.array([run.auglag_l2 for run in case_summary.runs], dtype=np.float64)
-    auglag_eps = np.array([run.auglag_eps_norm for run in case_summary.runs], dtype=np.float64)
+    lagrange_l2 = np.array([run.lagrange_l2 for run in case_summary.runs], dtype=np.float64)
+    lagrange_eps = np.array([run.lagrange_eps_norm for run in case_summary.runs], dtype=np.float64)
 
     visible = n_values <= DEFAULT_MAX_N_TO_SHOW
     n_values = n_values[visible]
-    auglag_l2 = auglag_l2[visible]
-    auglag_eps = auglag_eps[visible]
+    lagrange_l2 = lagrange_l2[visible]
+    lagrange_eps = lagrange_eps[visible]
 
     fig, ax = plt.subplots(figsize=(8.8, 5.4))
 
-    _plot_auglag_summary(
+    _plot_lagrange_summary(
         ax,
         n_values=n_values,
-        auglag_l2=auglag_l2,
-        auglag_eps=auglag_eps,
+        lagrange_l2=lagrange_l2,
+        lagrange_eps=lagrange_eps,
         title="",
         y_label="relative error",
         l2_order=4.0,

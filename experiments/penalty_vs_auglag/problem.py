@@ -84,17 +84,12 @@ class NumericalConfig:
     plot_per_element: int = 250
     error_samples: int = 4000
     use_true_c_penalty: bool = True
-    use_true_c_auglag: bool = True
+    use_true_c_lagrange: bool = True
     flux_jump_average: str = "eps_weighted"
     penalty_gamma: float = 1.0e4
     penalty_gammas: tuple[float, ...] = (1.0e4, 1.0e5, 1.0e6)
     penalty_residual_tol: float = 1.0e-10
-    auglag_rho: float = 10.0
-    auglag_max_iter: int = 100000
-    auglag_tol_primal: float = 1.0e-10
-    auglag_tol_stationarity: float = 1.0e-10
-    auglag_relax: float = 1.0
-    auglag_verbose: bool = False
+    lagrange_residual_tol: float = 1.0e-10
 
 
 @dataclass

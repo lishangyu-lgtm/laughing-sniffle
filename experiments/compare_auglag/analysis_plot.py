@@ -13,7 +13,7 @@ _METHOD_PLOT_STYLES: dict[str, dict[str, object]] = {
         "linewidth": 2.2,
         "zorder": 1,
     },
-    "AugLag": {
+    "Lagrange": {
         "color": "tab:blue",
         "linestyle": "-",
         "linewidth": 2.0,

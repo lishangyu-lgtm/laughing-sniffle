@@ -30,7 +30,7 @@ from ...core.linear_interface import (
 )
 from ...core.methods_tfpm import (
     assemble_lagrange_kkt_system,
-    solve_augmented_lagrange,
+    solve_lagrange_kkt,
     solve_tfpm_strong_matching,
 )
 from ...core.tfpm_local import (
@@ -112,11 +112,12 @@ class SingleRunResult:
     h: float
     tfpm_l2: float
     tfpm_h1: float
-    auglag_l2: float
-    auglag_h1: float
-    auglag_iter: int
-    auglag_primal_inf: float
-    auglag_stationarity_inf: float
+    lagrange_l2: float
+    lagrange_h1: float
+    lagrange_iter: int
+    lagrange_primal_inf: float
+    lagrange_stationarity_inf: float
+    lagrange_residual_inf: float
 
 
 @dataclass(frozen=True)
@@ -304,9 +305,7 @@ def _run_single_case(
     norm_quad_n: int,
     derivative_weight_mode: str = "standard",
     flux_jump_average: str,
-    auglag_rho: float,
-    auglag_max_iter: int,
-    auglag_tol: float,
+    lagrange_residual_tol: float,
 ) -> SingleRunResult:
     cfg, x_c_func, x_f_func, exact_reference = case.build_problem(eps1=eps1, eps2=eps2)
     grid_x, h, _interface_node = build_uniform_grid(
@@ -346,7 +345,7 @@ def _run_single_case(
         xI=y_interface,
     )
 
-    _K, _rhs, H, l, C, d = assemble_lagrange_kkt_system(
+    K, rhs, H, l, C, d = assemble_lagrange_kkt_system(
         grid=grid_y,
         elems=elems,
         f_func=y_f_func,
@@ -359,17 +358,14 @@ def _run_single_case(
         use_true_c=True,
         flux_jump_weights=flux_weights,
     )
-    z_auglag, _lam, aug_history = solve_augmented_lagrange(
+    z_lagrange, _lam, lagrange_history = solve_lagrange_kkt(
+        K=K,
+        rhs=rhs,
         H=H,
         l=l,
         C=C,
         d=d,
-        rho=auglag_rho,
-        max_iter=auglag_max_iter,
-        tol_primal=auglag_tol,
-        tol_stationarity=auglag_tol,
-        relax=1.0,
-        verbose=False,
+        residual_tol=lagrange_residual_tol,
     )
 
     errors = _integrate_relative_errors(
@@ -379,7 +375,7 @@ def _run_single_case(
         y_f_func=y_f_func,
         solutions={
             "tfpm": z_tfpm,
-            "auglag": z_auglag,
+            "lagrange": z_lagrange,
         },
         grid_x=grid_x,
         x_interface=cfg.x_interface,
@@ -394,11 +390,12 @@ def _run_single_case(
         h=h,
         tfpm_l2=errors["tfpm"][0],
         tfpm_h1=errors["tfpm"][1],
-        auglag_l2=errors["auglag"][0],
-        auglag_h1=errors["auglag"][1],
-        auglag_iter=aug_history.iter,
-        auglag_primal_inf=aug_history.primal_inf,
-        auglag_stationarity_inf=aug_history.stationarity_inf,
+        lagrange_l2=errors["lagrange"][0],
+        lagrange_h1=errors["lagrange"][1],
+        lagrange_iter=lagrange_history.iter,
+        lagrange_primal_inf=lagrange_history.primal_inf,
+        lagrange_stationarity_inf=lagrange_history.stationarity_inf,
+        lagrange_residual_inf=lagrange_history.residual_inf,
     )
 
 
@@ -581,27 +578,27 @@ def _write_summary(report_path: Path, reports: list[ScenarioCaseReport]) -> None
         lines.append("")
         lines.append(
             "N        h            TFPM_L2        ord        TFPM_EpsNorm   ord        "
-            "AugLag_L2      ord        AugLag_EpsNorm ord       AugIter"
+            "Lagrange_L2    ord        Lagrange_EpsNorm ord     KKTIter"
         )
 
         tfpm_l2_orders = _local_orders(runs, "tfpm_l2")
         tfpm_h1_orders = _local_orders(runs, "tfpm_h1")
-        aug_l2_orders = _local_orders(runs, "auglag_l2")
-        aug_h1_orders = _local_orders(runs, "auglag_h1")
+        lagrange_l2_orders = _local_orders(runs, "lagrange_l2")
+        lagrange_h1_orders = _local_orders(runs, "lagrange_h1")
 
         for idx, run in enumerate(runs):
             tfpm_l2_ord = "-" if idx == 0 else f"{tfpm_l2_orders[idx - 1]:8.4f}"
             tfpm_h1_ord = "-" if idx == 0 else f"{tfpm_h1_orders[idx - 1]:8.4f}"
-            aug_l2_ord = "-" if idx == 0 else f"{aug_l2_orders[idx - 1]:8.4f}"
-            aug_h1_ord = "-" if idx == 0 else f"{aug_h1_orders[idx - 1]:8.4f}"
+            lagrange_l2_ord = "-" if idx == 0 else f"{lagrange_l2_orders[idx - 1]:8.4f}"
+            lagrange_h1_ord = "-" if idx == 0 else f"{lagrange_h1_orders[idx - 1]:8.4f}"
             lines.append(
                 f"{run.n_elements:4d}  "
                 f"{run.h:10.3e}  "
                 f"{run.tfpm_l2:12.5e}  {tfpm_l2_ord:>8s}  "
                 f"{run.tfpm_h1:12.5e}  {tfpm_h1_ord:>8s}  "
-                f"{run.auglag_l2:12.5e}  {aug_l2_ord:>8s}  "
-                f"{run.auglag_h1:12.5e}  {aug_h1_ord:>8s}  "
-                f"{run.auglag_iter:7d}"
+                f"{run.lagrange_l2:12.5e}  {lagrange_l2_ord:>8s}  "
+                f"{run.lagrange_h1:12.5e}  {lagrange_h1_ord:>8s}  "
+                f"{run.lagrange_iter:7d}"
             )
 
         lines.append("")
@@ -646,16 +643,14 @@ def run_study_for_scenario(
                     norm_quad_n=12,
                     derivative_weight_mode="eps_weighted",
                     flux_jump_average="eps_weighted",
-                    auglag_rho=100.0,
-                    auglag_max_iter=50000,
-                    auglag_tol=1e-12,
+                    lagrange_residual_tol=1e-10,
                 )
             )
         estimates = {
             "TFPM-Strong L2": _estimate_rate(runs, "tfpm_l2"),
             "TFPM-Strong EpsNorm": _estimate_rate(runs, "tfpm_h1"),
-            "AugLag L2": _estimate_rate(runs, "auglag_l2"),
-            "AugLag EpsNorm": _estimate_rate(runs, "auglag_h1"),
+            "Lagrange L2": _estimate_rate(runs, "lagrange_l2"),
+            "Lagrange EpsNorm": _estimate_rate(runs, "lagrange_h1"),
         }
         reports.append(
             ScenarioCaseReport(

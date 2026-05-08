@@ -23,7 +23,7 @@ from ...baselines.fdm_reference import (
     evaluate_fdm_on_side,
     solve_interface_fdm,
 )
-from ...core.methods_tfpm import AugLagHistory
+from ...core.methods_tfpm import LagrangeHistory
 from .analysis_plot import plot_energy_histories, plot_errors_vs_reference, plot_final_solutions
 from .problem import (
     ArrayFunc,
@@ -53,7 +53,7 @@ from .run_allen_cahn_evolution import (
     _relative_l2_error,
     _relative_linf_error,
     _relative_step_l2,
-    _solve_linear_tfpm_auglag,
+    _solve_linear_tfpm_lagrange,
     _state_l2_norm,
     solve_fdm_reference,
 )
@@ -71,7 +71,7 @@ class InnerLinearSolveResult:
     solved_on_physical_grid: bool
     tfpm_result: TfpmLinearSolveResult | None = None
     fdm_solution: dict[str, np.ndarray] | None = None
-    auglag_history: AugLagHistory | None = None
+    lagrange_history: LagrangeHistory | None = None
     elapsed_seconds: float = 0.0
 
 
@@ -82,7 +82,7 @@ class StepAttempt:
     linear_result: InnerLinearSolveResult
     inner_iterations: int
     linear_solves: int
-    auglag_iterations: int
+    lagrange_solves: int
     inner_converged: bool
     stop_reason: str
 
@@ -97,10 +97,10 @@ class StepRecord:
     stage: str
     inner_iterations: int
     linear_solves: int
-    auglag_iterations: int
+    lagrange_solves: int
     linear_solve_seconds: float
-    auglag_primal_inf: float
-    auglag_stationarity_inf: float
+    lagrange_primal_inf: float
+    lagrange_stationarity_inf: float
     inner_converged: bool
     step_l2: float
     step_inf: float
@@ -156,12 +156,11 @@ def _default_experiment() -> ExperimentConfig:
 def _normalize_inner_solver(inner_solver: str) -> str:
     key = str(inner_solver).strip().lower().replace("-", "_")
     aliases = {
-        "tfpm": "tfpm_alm",
-        "tfpm_alm": "tfpm_alm",
-        "tfpm_aug": "tfpm_alm",
-        "tfpm_auglag": "tfpm_alm",
-        "auglag": "tfpm_alm",
-        "alm": "tfpm_alm",
+        "tfpm": "tfpm_lagrange",
+        "tfpm_lagrange": "tfpm_lagrange",
+        "tfpm_kkt": "tfpm_lagrange",
+        "lagrange": "tfpm_lagrange",
+        "kkt": "tfpm_lagrange",
         "fdm": "fdm",
         "finite_difference": "fdm",
         "finite_difference_method": "fdm",
@@ -169,11 +168,11 @@ def _normalize_inner_solver(inner_solver: str) -> str:
     try:
         return aliases[key]
     except KeyError as exc:
-        raise ValueError("inner_solver must be 'tfpm_alm', 'fdm', or 'all'.") from exc
+        raise ValueError("inner_solver must be 'tfpm_lagrange', 'fdm', or 'all'.") from exc
 
 
 def _inner_solver_label(inner_solver: str) -> str:
-    return {"tfpm_alm": "TFPM-ALM", "fdm": "FDM"}[_normalize_inner_solver(inner_solver)]
+    return {"tfpm_lagrange": "TFPM-Lagrange", "fdm": "FDM"}[_normalize_inner_solver(inner_solver)]
 
 
 def _series_label(mode: str, inner_solver: str) -> str:
@@ -187,17 +186,17 @@ def _jump_du_for_linear_problem(problem: ProblemConfig, transformed_grid: Transf
     return float(problem.jump_flux)
 
 
-def _solve_linear_tfpm_alm_backend(
+def _solve_linear_tfpm_lagrange_backend(
     experiment: ExperimentConfig,
     transformed_grid: TransformedGrid,
     coeff_x_func: ArrayFunc,
     rhs_x_func: ArrayFunc,
 ) -> InnerLinearSolveResult:
     t_start = time.perf_counter()
-    tfpm_result = _solve_linear_tfpm_auglag(experiment, transformed_grid, coeff_x_func, rhs_x_func)
+    tfpm_result = _solve_linear_tfpm_lagrange(experiment, transformed_grid, coeff_x_func, rhs_x_func)
     elapsed = time.perf_counter() - t_start
     return InnerLinearSolveResult(
-        inner_solver="tfpm_alm",
+        inner_solver="tfpm_lagrange",
         coeff_y_func=tfpm_result.coeff_y_func,
         rhs_y_func=tfpm_result.rhs_y_func,
         y_grid=tfpm_result.y_grid.copy(),
@@ -205,7 +204,7 @@ def _solve_linear_tfpm_alm_backend(
         solved_on_physical_grid=bool(tfpm_result.solved_on_physical_grid),
         tfpm_result=tfpm_result,
         fdm_solution=None,
-        auglag_history=tfpm_result.auglag_history,
+        lagrange_history=tfpm_result.lagrange_history,
         elapsed_seconds=elapsed,
     )
 
@@ -243,15 +242,15 @@ def _solve_linear_fdm_backend(
         solved_on_physical_grid=bool(transformed_grid.solved_on_physical_grid),
         tfpm_result=None,
         fdm_solution=fdm_solution,
-        auglag_history=None,
+        lagrange_history=None,
         elapsed_seconds=elapsed,
     )
 
 
 def _linear_solver_for(inner_solver: str) -> LinearSolver:
     inner_solver = _normalize_inner_solver(inner_solver)
-    if inner_solver == "tfpm_alm":
-        return _solve_linear_tfpm_alm_backend
+    if inner_solver == "tfpm_lagrange":
+        return _solve_linear_tfpm_lagrange_backend
     if inner_solver == "fdm":
         return _solve_linear_fdm_backend
     raise ValueError(f"Unsupported inner_solver={inner_solver!r}.")
@@ -270,9 +269,9 @@ def _evaluate_linear_solution_on_x(
     u = np.zeros_like(x_eval)
     ux = np.zeros_like(x_eval)
 
-    if linear.inner_solver == "tfpm_alm":
+    if linear.inner_solver == "tfpm_lagrange":
         if linear.tfpm_result is None:
-            raise ValueError("TFPM-ALM linear result is missing tfpm_result.")
+            raise ValueError("TFPM-Lagrange linear result is missing tfpm_result.")
         from .run_allen_cahn_evolution import _evaluate_linear_solution_on_x as _eval_tfpm
 
         return _eval_tfpm(problem, numerical, linear.tfpm_result, x_eval)
@@ -336,14 +335,14 @@ def _solve_scheme1_step(
 
     linear = solve_linear(experiment, transformed_grid, coeff_x, rhs_x)
     state, energy = _candidate_from_linear(experiment, monitor_grid, linear)
-    aug_iters = 0 if linear.auglag_history is None else int(linear.auglag_history.iter)
+    lagrange_solves = 0 if linear.lagrange_history is None else int(linear.lagrange_history.iter)
     return StepAttempt(
         state=state,
         energy=energy,
         linear_result=linear,
         inner_iterations=1,
         linear_solves=1,
-        auglag_iterations=aug_iters,
+        lagrange_solves=lagrange_solves,
         inner_converged=True,
         stop_reason=f"single linearized Scheme I step with {_inner_solver_label(linear.inner_solver)} inner solve",
     )
@@ -363,7 +362,7 @@ def _solve_scheme2_step(
     last_state: SampledState | None = None
     last_energy = np.nan
     last_linear: InnerLinearSolveResult | None = None
-    total_auglag_iters = 0
+    total_lagrange_solves = 0
 
     for inner in range(1, int(cfg.max_inner) + 1):
         def coeff_x(x: np.ndarray, uk: SampledState = uk) -> np.ndarray:
@@ -378,8 +377,8 @@ def _solve_scheme2_step(
             return (inv_dt + 1.0) * unx + 2.0 * ukx
 
         linear = solve_linear(experiment, transformed_grid, coeff_x, rhs_x)
-        if linear.auglag_history is not None:
-            total_auglag_iters += int(linear.auglag_history.iter)
+        if linear.lagrange_history is not None:
+            total_lagrange_solves += int(linear.lagrange_history.iter)
         candidate_state, candidate_energy = _candidate_from_linear(experiment, monitor_grid, linear)
         rel_inner = _relative_step_l2(monitor_grid, candidate_state.u, uk.u)
 
@@ -393,7 +392,7 @@ def _solve_scheme2_step(
                 linear_result=linear,
                 inner_iterations=inner,
                 linear_solves=inner,
-                auglag_iterations=total_auglag_iters,
+                lagrange_solves=total_lagrange_solves,
                 inner_converged=True,
                 stop_reason="inner fixed-point tolerance reached",
             )
@@ -406,7 +405,7 @@ def _solve_scheme2_step(
         linear_result=last_linear,
         inner_iterations=int(cfg.max_inner),
         linear_solves=int(cfg.max_inner),
-        auglag_iterations=total_auglag_iters,
+        lagrange_solves=total_lagrange_solves,
         inner_converged=False,
         stop_reason="maximum inner iterations reached",
     )
@@ -439,7 +438,7 @@ def _solve_scheme3_step(
     last_state: SampledState | None = None
     last_energy = np.nan
     last_linear: InnerLinearSolveResult | None = None
-    total_auglag_iters = 0
+    total_lagrange_solves = 0
 
     for inner in range(1, int(cfg.max_inner) + 1):
         def coeff_x(
@@ -473,8 +472,8 @@ def _solve_scheme3_step(
             )
 
         linear = solve_linear(experiment, transformed_grid, coeff_x, rhs_x)
-        if linear.auglag_history is not None:
-            total_auglag_iters += int(linear.auglag_history.iter)
+        if linear.lagrange_history is not None:
+            total_lagrange_solves += int(linear.lagrange_history.iter)
         candidate_state, candidate_energy = _candidate_from_linear(experiment, monitor_grid, linear)
         rel_inner = _relative_step_l2(monitor_grid, candidate_state.u, uk.u)
 
@@ -488,7 +487,7 @@ def _solve_scheme3_step(
                 linear_result=linear,
                 inner_iterations=inner,
                 linear_solves=inner,
-                auglag_iterations=total_auglag_iters,
+                lagrange_solves=total_lagrange_solves,
                 inner_converged=True,
                 stop_reason="inner fixed-point tolerance reached",
             )
@@ -501,7 +500,7 @@ def _solve_scheme3_step(
         linear_result=last_linear,
         inner_iterations=int(cfg.max_inner),
         linear_solves=int(cfg.max_inner),
-        auglag_iterations=total_auglag_iters,
+        lagrange_solves=total_lagrange_solves,
         inner_converged=False,
         stop_reason="maximum inner iterations reached",
     )
@@ -520,7 +519,7 @@ def _make_step_record(
     monitor_grid: PhysicalGrid,
 ) -> StepRecord:
     delta = attempt.state.u - old_state.u
-    aug = attempt.linear_result.auglag_history
+    lag = attempt.linear_result.lagrange_history
     return StepRecord(
         step=step,
         time=float(time_value),
@@ -530,10 +529,10 @@ def _make_step_record(
         stage=stage,
         inner_iterations=int(attempt.inner_iterations),
         linear_solves=int(attempt.linear_solves),
-        auglag_iterations=int(attempt.auglag_iterations),
+        lagrange_solves=int(attempt.lagrange_solves),
         linear_solve_seconds=float(attempt.linear_result.elapsed_seconds),
-        auglag_primal_inf=np.nan if aug is None else float(aug.primal_inf),
-        auglag_stationarity_inf=np.nan if aug is None else float(aug.stationarity_inf),
+        lagrange_primal_inf=np.nan if lag is None else float(lag.primal_inf),
+        lagrange_stationarity_inf=np.nan if lag is None else float(lag.stationarity_inf),
         inner_converged=bool(attempt.inner_converged),
         step_l2=_state_l2_norm(monitor_grid, delta),
         step_inf=float(np.max(np.abs(delta))),
@@ -674,7 +673,7 @@ def solve_evolution_with_inner_solver(
             verbose,
             f"{_series_label(mode, inner_solver)} step={step:04d}, t={current_time:.6e}, "
             f"E={record.energy:.8e}, step_l2={record.step_l2:.3e}, "
-            f"inner={record.inner_iterations}, AugLag={record.auglag_iterations}",
+            f"inner={record.inner_iterations}",
         )
 
     elapsed = time.perf_counter() - t_start
@@ -724,7 +723,7 @@ def _save_result_npz(out_dir: Path, result: InnerEvolutionResult) -> Path:
         step_inf=np.array([record.step_inf for record in result.history], dtype=np.float64),
         linear_solve_seconds=np.array([record.linear_solve_seconds for record in result.history], dtype=np.float64),
         inner_iterations=np.array([record.inner_iterations for record in result.history], dtype=np.int32),
-        auglag_iterations=np.array([record.auglag_iterations for record in result.history], dtype=np.int32),
+        lagrange_solves=np.array([record.lagrange_solves for record in result.history], dtype=np.int32),
         inner_converged=np.array([record.inner_converged for record in result.history], dtype=np.bool_),
     )
     return path
@@ -785,7 +784,7 @@ def _compute_pairwise_inner_differences(
     metrics: dict[str, tuple[float, float]] = {}
     for mode in modes:
         fdm_result = results.get((mode, "fdm"))
-        tfpm_result = results.get((mode, "tfpm_alm"))
+        tfpm_result = results.get((mode, "tfpm_lagrange"))
         if fdm_result is None or tfpm_result is None:
             continue
         fdm_values = fdm_result.final_state.eval(x_error)
@@ -821,7 +820,7 @@ def _write_summary(
 def run_inner_solver_comparison(
     experiment: ExperimentConfig | None = None,
     modes: tuple[str, ...] = ("scheme1", "scheme2", "scheme3"),
-    inner_solvers: tuple[str, ...] = ("tfpm_alm", "fdm"),
+    inner_solvers: tuple[str, ...] = ("tfpm_lagrange", "fdm"),
 ) -> dict[tuple[str, str], InnerEvolutionResult]:
     experiment = _default_experiment() if experiment is None else experiment
     validate_experiment(experiment)
@@ -914,7 +913,7 @@ def run_inner_solver_comparison(
         f"n_elements = {experiment.numerical.n_elements}, monitor_segments = {experiment.numerical.monitor_segments}",
         f"tfpm_basis = {experiment.numerical.tfpm_basis}",
         f"time interval = [{experiment.time.initial_time}, {experiment.time.final_time}], dt = {experiment.time.dt}",
-        f"auglag rho = {experiment.auglag.rho}, tolerances = ({experiment.auglag.tol_primal}, {experiment.auglag.tol_stationarity})",
+        f"lagrange residual tolerance = {experiment.lagrange.residual_tol}",
         f"reference = {reference_line}",
     ]
 
@@ -932,7 +931,7 @@ def run_inner_solver_comparison(
         for inner_solver in inner_solvers:
             result = results[(mode, inner_solver)]
             final_energy = result.history[-1].energy if result.history else result.initial_energy
-            total_auglag = sum(record.auglag_iterations for record in result.history)
+            total_lagrange = sum(record.lagrange_solves for record in result.history)
             total_linear_seconds = sum(record.linear_solve_seconds for record in result.history)
             final_step = result.history[-1].step_l2 if result.history else 0.0
             prefix = _series_label(mode, inner_solver)
@@ -941,7 +940,7 @@ def run_inner_solver_comparison(
                     f"{prefix} completed = {result.completed}, all inner converged = {result.all_inner_converged}",
                     f"{prefix} steps = {len(result.history)}, elapsed = {result.elapsed_seconds:.6f} s, linear solve time = {total_linear_seconds:.6f} s",
                     f"{prefix} final time = {result.final_time:.8e}, final energy = {final_energy:.8e}",
-                    f"{prefix} final step_l2 = {final_step:.8e}, total AugLag iterations = {total_auglag}",
+                    f"{prefix} final step_l2 = {final_step:.8e}, total Lagrange KKT solves = {total_lagrange}",
                 ]
             )
             if reference_errors:
@@ -953,10 +952,10 @@ def run_inner_solver_comparison(
                     ]
                 )
     if pairwise_errors:
-        result_lines.append("Pairwise final differences between FDM inner and TFPM-ALM inner:")
+        result_lines.append("Pairwise final differences between FDM inner and TFPM-Lagrange inner:")
         for mode_label, (rel_l2, rel_linf) in pairwise_errors.items():
             result_lines.append(
-                f"{mode_label} FDM-inner vs TFPM-ALM-inner relative L2 = {rel_l2:.8e}, relative Linf = {rel_linf:.8e}"
+                f"{mode_label} FDM-inner vs TFPM-Lagrange-inner relative L2 = {rel_l2:.8e}, relative Linf = {rel_linf:.8e}"
             )
 
     output_files.append(summary_path)
@@ -977,10 +976,10 @@ def run_inner_solver_comparison(
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Compare FDM and TFPM-ALM inner linear solves for Allen-Cahn Scheme I-III."
+        description="Compare FDM and TFPM-Lagrange inner linear solves for Allen-Cahn Scheme I-III."
     )
     parser.add_argument("--mode", default="all", help="scheme1, scheme2, scheme3, or all")
-    parser.add_argument("--inner-solver", default="all", help="tfpm_alm, fdm, or all")
+    parser.add_argument("--inner-solver", default="all", help="tfpm_lagrange, fdm, or all")
     parser.add_argument("--final-time", type=float, default=None)
     parser.add_argument("--dt", type=float, default=None)
     parser.add_argument("--n-elements", type=int, default=None)
@@ -994,6 +993,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--reference-max-step", type=float, default=None)
     parser.add_argument("--reference-no-max-step", action="store_true")
     parser.add_argument("--reference-samples", type=int, default=None)
+    parser.add_argument("--lagrange-residual-tol", type=float, default=None)
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--no-plots", action="store_true")
     parser.add_argument("--no-npz", action="store_true")
@@ -1029,6 +1029,8 @@ def main() -> None:
         experiment.reference.max_step = float(args.reference_max_step)
     if args.reference_samples is not None:
         experiment.reference.comparison_samples = int(args.reference_samples)
+    if args.lagrange_residual_tol is not None:
+        experiment.lagrange.residual_tol = float(args.lagrange_residual_tol)
     if args.quiet:
         experiment.output.verbose = False
     if args.no_plots:
@@ -1042,7 +1044,7 @@ def main() -> None:
         modes = (_normalize_mode(args.mode),)
 
     if str(args.inner_solver).strip().lower() == "all":
-        inner_solvers = ("tfpm_alm", "fdm")
+        inner_solvers = ("tfpm_lagrange", "fdm")
     else:
         inner_solvers = (_normalize_inner_solver(args.inner_solver),)
 

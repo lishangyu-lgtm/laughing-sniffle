@@ -62,18 +62,13 @@ class NumericalConfig:
     n_seg_gauss: int = 8
     plot_samples: int = 600
     snapshot_stride: int = 1
-    use_true_c_auglag: bool = True
+    use_true_c_lagrange: bool = True
     tfpm_basis: str = "endpoint_auto"
 
 
 @dataclass
-class AugLagConfig:
-    rho: float = 100.0
-    max_iter: int = 50000
-    tol_primal: float = 1.0e-10
-    tol_stationarity: float = 1.0e-10
-    relax: float = 1.0
-    verbose: bool = False
+class LagrangeConfig:
+    residual_tol: float = 1.0e-10
 
 
 @dataclass
@@ -125,7 +120,7 @@ class OutputConfig:
 class ExperimentConfig:
     problem: ProblemConfig = field(default_factory=ProblemConfig)
     numerical: NumericalConfig = field(default_factory=NumericalConfig)
-    auglag: AugLagConfig = field(default_factory=AugLagConfig)
+    lagrange: LagrangeConfig = field(default_factory=LagrangeConfig)
     time: TimeConfig = field(default_factory=TimeConfig)
     scheme1: Scheme1Config = field(default_factory=Scheme1Config)
     scheme2: Scheme2Config = field(default_factory=Scheme2Config)
@@ -181,6 +176,8 @@ def validate_experiment(experiment: ExperimentConfig) -> None:
         raise ValueError("time.dt must be positive.")
     if time.final_time < time.initial_time:
         raise ValueError("final_time must be greater than or equal to initial_time.")
+    if experiment.lagrange.residual_tol <= 0.0:
+        raise ValueError("lagrange.residual_tol must be positive.")
     if use_direct_physical_grid(problem) and not np.isclose(
         problem.eps_left, problem.eps_right, atol=1.0e-14, rtol=1.0e-14
     ):
@@ -323,9 +320,9 @@ def sampled_state_from_values(problem: ProblemConfig, x: np.ndarray, u: np.ndarr
 
 __all__ = [
     "ArrayFunc",
-    "AugLagConfig",
     "DEFAULT_EXPERIMENT",
     "ExperimentConfig",
+    "LagrangeConfig",
     "NumericalConfig",
     "OutputConfig",
     "PhysicalGrid",

@@ -20,7 +20,7 @@ if __package__ is None or __package__ == "":
         sys.path.insert(0, str(_PARENT))
     __package__ = f"{_ROOT.name}.{_EXPERIMENTS.name}.{_HERE.name}"
 
-from ...core.methods_tfpm import AugLagHistory, assemble_lagrange_kkt_system, solve_augmented_lagrange
+from ...core.methods_tfpm import LagrangeHistory, assemble_lagrange_kkt_system, solve_lagrange_kkt
 from ...core.tfpm_local import build_elements, evaluate_tfpm_state_on_side, make_trace_functions
 from .analysis_plot import plot_energy_histories, plot_errors_vs_reference, plot_final_solutions, write_summary
 from .problem import (
@@ -55,7 +55,7 @@ class LinearSolveResult:
     solved_on_physical_grid: bool
     elems: object
     z: np.ndarray
-    auglag_history: AugLagHistory
+    lagrange_history: LagrangeHistory
 
 
 @dataclass(slots=True)
@@ -65,7 +65,7 @@ class StepAttempt:
     linear_result: LinearSolveResult
     inner_iterations: int
     linear_solves: int
-    auglag_iterations: int
+    lagrange_solves: int
     inner_converged: bool
     stop_reason: str
 
@@ -79,9 +79,9 @@ class StepRecord:
     stage: str
     inner_iterations: int
     linear_solves: int
-    auglag_iterations: int
-    auglag_primal_inf: float
-    auglag_stationarity_inf: float
+    lagrange_solves: int
+    lagrange_primal_inf: float
+    lagrange_stationarity_inf: float
     inner_converged: bool
     step_l2: float
     step_inf: float
@@ -312,13 +312,13 @@ def solve_fdm_reference(experiment: ExperimentConfig) -> FdmReferenceResult:
         states=states,
         energies=energies,
         final_state=final_state,
-            elapsed_seconds=elapsed,
-            method=method,
-            nfev=int(getattr(sol, "nfev", 0)),
-            njev=int(getattr(sol, "njev", 0)),
-            nlu=int(getattr(sol, "nlu", 0)),
-            message=str(sol.message),
-        )
+        elapsed_seconds=elapsed,
+        method=method,
+        nfev=int(getattr(sol, "nfev", 0)),
+        njev=int(getattr(sol, "njev", 0)),
+        nlu=int(getattr(sol, "nlu", 0)),
+        message=str(sol.message),
+    )
 
 
 def _relative_l2_error(x: np.ndarray, values: np.ndarray, reference_values: np.ndarray) -> float:
@@ -333,7 +333,7 @@ def _relative_linf_error(values: np.ndarray, reference_values: np.ndarray) -> fl
     return numerator / max(denominator, 1.0e-15)
 
 
-def _solve_linear_tfpm_auglag(
+def _solve_linear_tfpm_lagrange(
     experiment: ExperimentConfig,
     transformed_grid: TransformedGrid,
     coeff_x_func: ArrayFunc,
@@ -341,7 +341,7 @@ def _solve_linear_tfpm_auglag(
 ) -> LinearSolveResult:
     problem = experiment.problem
     numerical = experiment.numerical
-    auglag = experiment.auglag
+    lagrange = experiment.lagrange
 
     coeff_y_func = transformed_coefficient_from_physical(problem, coeff_x_func)
     rhs_y_func = transformed_rhs_from_physical(problem, rhs_x_func)
@@ -365,7 +365,7 @@ def _solve_linear_tfpm_auglag(
     else:
         jump_du = problem.jump_flux
 
-    _K, _rhs, H, l_vec, C, d = assemble_lagrange_kkt_system(
+    K, rhs, H, l_vec, C, d = assemble_lagrange_kkt_system(
         grid=transformed_grid.y,
         elems=elems,
         f_func=rhs_y_func,
@@ -375,21 +375,18 @@ def _solve_linear_tfpm_auglag(
         jump_du=jump_du,
         xI=transformed_grid.y_interface,
         c_func=coeff_y_func,
-        use_true_c=numerical.use_true_c_auglag,
+        use_true_c=numerical.use_true_c_lagrange,
         flux_jump_weights=(0.5, 0.5),
     )
 
-    z, _lam, auglag_history = solve_augmented_lagrange(
+    z, _lam, lagrange_history = solve_lagrange_kkt(
+        K=K,
+        rhs=rhs,
         H=H,
         l=l_vec,
         C=C,
         d=d,
-        rho=auglag.rho,
-        max_iter=auglag.max_iter,
-        tol_primal=auglag.tol_primal,
-        tol_stationarity=auglag.tol_stationarity,
-        relax=auglag.relax,
-        verbose=auglag.verbose,
+        residual_tol=float(lagrange.residual_tol),
     )
     return LinearSolveResult(
         coeff_y_func=coeff_y_func,
@@ -399,7 +396,7 @@ def _solve_linear_tfpm_auglag(
         solved_on_physical_grid=bool(transformed_grid.solved_on_physical_grid),
         elems=elems,
         z=np.asarray(z, dtype=np.float64),
-        auglag_history=auglag_history,
+        lagrange_history=lagrange_history,
     )
 
 
@@ -483,7 +480,7 @@ def _solve_scheme1_step(
         un = state.eval(x)
         return -nonlinearity(un) + mu * un
 
-    linear = _solve_linear_tfpm_auglag(experiment, transformed_grid, coeff_x, rhs_x)
+    linear = _solve_linear_tfpm_lagrange(experiment, transformed_grid, coeff_x, rhs_x)
     state, energy = _candidate_from_linear(experiment, monitor_grid, linear)
     return StepAttempt(
         state=state,
@@ -491,7 +488,7 @@ def _solve_scheme1_step(
         linear_result=linear,
         inner_iterations=1,
         linear_solves=1,
-        auglag_iterations=int(linear.auglag_history.iter),
+        lagrange_solves=int(linear.lagrange_history.iter),
         inner_converged=True,
         stop_reason="single linearized Scheme I step",
     )
@@ -510,7 +507,7 @@ def _solve_scheme2_step(
     last_state: SampledState | None = None
     last_energy = np.nan
     last_linear: LinearSolveResult | None = None
-    total_auglag_iters = 0
+    total_lagrange_solves = 0
 
     for inner in range(1, int(cfg.max_inner) + 1):
         def coeff_x(x: np.ndarray, uk: SampledState = uk) -> np.ndarray:
@@ -524,8 +521,8 @@ def _solve_scheme2_step(
             unx = un.eval(x)
             return (inv_dt + 1.0) * unx + 2.0 * ukx
 
-        linear = _solve_linear_tfpm_auglag(experiment, transformed_grid, coeff_x, rhs_x)
-        total_auglag_iters += int(linear.auglag_history.iter)
+        linear = _solve_linear_tfpm_lagrange(experiment, transformed_grid, coeff_x, rhs_x)
+        total_lagrange_solves += int(linear.lagrange_history.iter)
         candidate_state, candidate_energy = _candidate_from_linear(experiment, monitor_grid, linear)
         rel_inner = _relative_step_l2(monitor_grid, candidate_state.u, uk.u)
 
@@ -539,7 +536,7 @@ def _solve_scheme2_step(
                 linear_result=linear,
                 inner_iterations=inner,
                 linear_solves=inner,
-                auglag_iterations=total_auglag_iters,
+                lagrange_solves=total_lagrange_solves,
                 inner_converged=True,
                 stop_reason="inner fixed-point tolerance reached",
             )
@@ -552,7 +549,7 @@ def _solve_scheme2_step(
         linear_result=last_linear,
         inner_iterations=int(cfg.max_inner),
         linear_solves=int(cfg.max_inner),
-        auglag_iterations=total_auglag_iters,
+        lagrange_solves=total_lagrange_solves,
         inner_converged=False,
         stop_reason="maximum inner iterations reached",
     )
@@ -584,7 +581,7 @@ def _solve_scheme3_step(
     last_state: SampledState | None = None
     last_energy = np.nan
     last_linear: LinearSolveResult | None = None
-    total_auglag_iters = 0
+    total_lagrange_solves = 0
 
     for inner in range(1, int(cfg.max_inner) + 1):
         def coeff_x(
@@ -617,8 +614,8 @@ def _solve_scheme3_step(
                 + 0.5 * (vn + 1.5 * vk - 0.5 * vn**3 - 0.5 * vk**2 * vn)
             )
 
-        linear = _solve_linear_tfpm_auglag(experiment, transformed_grid, coeff_x, rhs_x)
-        total_auglag_iters += int(linear.auglag_history.iter)
+        linear = _solve_linear_tfpm_lagrange(experiment, transformed_grid, coeff_x, rhs_x)
+        total_lagrange_solves += int(linear.lagrange_history.iter)
         candidate_state, candidate_energy = _candidate_from_linear(experiment, monitor_grid, linear)
         rel_inner = _relative_step_l2(monitor_grid, candidate_state.u, uk.u)
 
@@ -632,7 +629,7 @@ def _solve_scheme3_step(
                 linear_result=linear,
                 inner_iterations=inner,
                 linear_solves=inner,
-                auglag_iterations=total_auglag_iters,
+                lagrange_solves=total_lagrange_solves,
                 inner_converged=True,
                 stop_reason="inner fixed-point tolerance reached",
             )
@@ -645,7 +642,7 @@ def _solve_scheme3_step(
         linear_result=last_linear,
         inner_iterations=int(cfg.max_inner),
         linear_solves=int(cfg.max_inner),
-        auglag_iterations=total_auglag_iters,
+        lagrange_solves=total_lagrange_solves,
         inner_converged=False,
         stop_reason="maximum inner iterations reached",
     )
@@ -663,7 +660,7 @@ def _make_step_record(
     monitor_grid: PhysicalGrid,
 ) -> StepRecord:
     delta = attempt.state.u - old_state.u
-    aug = attempt.linear_result.auglag_history
+    lag = attempt.linear_result.lagrange_history
     return StepRecord(
         step=step,
         time=float(time_value),
@@ -672,9 +669,9 @@ def _make_step_record(
         stage=stage,
         inner_iterations=int(attempt.inner_iterations),
         linear_solves=int(attempt.linear_solves),
-        auglag_iterations=int(attempt.auglag_iterations),
-        auglag_primal_inf=float(aug.primal_inf),
-        auglag_stationarity_inf=float(aug.stationarity_inf),
+        lagrange_solves=int(attempt.lagrange_solves),
+        lagrange_primal_inf=float(lag.primal_inf),
+        lagrange_stationarity_inf=float(lag.stationarity_inf),
         inner_converged=bool(attempt.inner_converged),
         step_l2=_state_l2_norm(monitor_grid, delta),
         step_inf=float(np.max(np.abs(delta))),
@@ -776,7 +773,7 @@ def solve_evolution(
             verbose,
             f"{_mode_label(mode)} step={step:04d}, t={current_time:.6e}, "
             f"E={record.energy:.8e}, step_l2={record.step_l2:.3e}, "
-            f"inner={record.inner_iterations}, AugLag={record.auglag_iterations}",
+            f"inner={record.inner_iterations}",
         )
 
     elapsed = time.perf_counter() - t_start
@@ -823,7 +820,7 @@ def _save_result_npz(out_dir: Path, result: EvolutionResult) -> Path:
         step_l2=np.array([record.step_l2 for record in result.history], dtype=np.float64),
         step_inf=np.array([record.step_inf for record in result.history], dtype=np.float64),
         inner_iterations=np.array([record.inner_iterations for record in result.history], dtype=np.int32),
-        auglag_iterations=np.array([record.auglag_iterations for record in result.history], dtype=np.int32),
+        lagrange_solves=np.array([record.lagrange_solves for record in result.history], dtype=np.int32),
         inner_converged=np.array([record.inner_converged for record in result.history], dtype=np.bool_),
     )
     return path
@@ -952,7 +949,7 @@ def run_experiment(
         f"n_elements = {experiment.numerical.n_elements}, monitor_segments = {experiment.numerical.monitor_segments}",
         f"tfpm_basis = {experiment.numerical.tfpm_basis}",
         f"time interval = [{experiment.time.initial_time}, {experiment.time.final_time}], dt = {experiment.time.dt}",
-        f"auglag rho = {experiment.auglag.rho}, tolerances = ({experiment.auglag.tol_primal}, {experiment.auglag.tol_stationarity})",
+        f"lagrange residual tolerance = {experiment.lagrange.residual_tol}",
     ]
     if experiment.reference.enabled:
         config_lines.append(
@@ -973,7 +970,7 @@ def run_experiment(
     reference_label = reference_result.label if reference_result is not None else "reference"
     for mode, result in results.items():
         final_energy = result.history[-1].energy if result.history else result.initial_energy
-        total_auglag = sum(record.auglag_iterations for record in result.history)
+        total_lagrange = sum(record.lagrange_solves for record in result.history)
         final_step = result.history[-1].step_l2 if result.history else 0.0
         error_line = []
         if reference_errors:
@@ -985,7 +982,7 @@ def run_experiment(
                 f"{_mode_label(mode)} completed = {result.completed}, all inner converged = {result.all_inner_converged}",
                 f"{_mode_label(mode)} steps = {len(result.history)}, elapsed = {result.elapsed_seconds:.6f} s",
                 f"{_mode_label(mode)} final time = {result.final_time:.8e}, final energy = {final_energy:.8e}",
-                f"{_mode_label(mode)} final step_l2 = {final_step:.8e}, total AugLag iterations = {total_auglag}",
+                f"{_mode_label(mode)} final step_l2 = {final_step:.8e}, total Lagrange KKT solves = {total_lagrange}",
                 *error_line,
             ]
         )
@@ -1006,7 +1003,7 @@ def run_experiment(
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run TFPM/AugLag Scheme I-III for time-evolution Allen-Cahn.")
+    parser = argparse.ArgumentParser(description="Run TFPM-Lagrange Scheme I-III for time-evolution Allen-Cahn.")
     parser.add_argument("--mode", default="all", help="scheme1, scheme2, scheme3, or all")
     parser.add_argument("--final-time", type=float, default=None)
     parser.add_argument("--dt", type=float, default=None)
@@ -1021,6 +1018,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--reference-max-step", type=float, default=None)
     parser.add_argument("--reference-no-max-step", action="store_true")
     parser.add_argument("--reference-samples", type=int, default=None)
+    parser.add_argument("--lagrange-residual-tol", type=float, default=None)
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--no-plots", action="store_true")
     parser.add_argument("--no-npz", action="store_true")
@@ -1056,6 +1054,8 @@ def main() -> None:
         experiment.reference.max_step = float(args.reference_max_step)
     if args.reference_samples is not None:
         experiment.reference.comparison_samples = int(args.reference_samples)
+    if args.lagrange_residual_tol is not None:
+        experiment.lagrange.residual_tol = float(args.lagrange_residual_tol)
     if args.quiet:
         experiment.output.verbose = False
     if args.no_plots:

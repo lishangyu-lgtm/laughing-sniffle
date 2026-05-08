@@ -23,7 +23,7 @@ from ...baselines.fdm_reference import (
     fdm_plot_arrays,
     solve_interface_fdm,
 )
-from ...core.methods_tfpm import AugLagHistory, assemble_lagrange_kkt_system, solve_augmented_lagrange
+from ...core.methods_tfpm import LagrangeHistory, assemble_lagrange_kkt_system, solve_lagrange_kkt
 from ...core.tfpm_local import (
     build_elements,
     build_uniform_grid,
@@ -51,10 +51,7 @@ class ProblemConfig:
 
 @dataclass(slots=True)
 class SolverConfig:
-    rho: float = 10.0
-    max_aug_lag_iter: int = 5000
-    tol_primal: float = 1e-10
-    tol_stationarity: float = 1e-10
+    lagrange_residual_tol: float = 1e-10
     max_newton_iter: int = 50
     newton_tol: float = 1e-12
     error_check_points: int = 200
@@ -70,7 +67,7 @@ class SolverConfig:
 class NewtonIterationRecord:
     iteration: int
     error_inf: float
-    auglag_history: AugLagHistory
+    lagrange_history: LagrangeHistory
 
 
 @dataclass(slots=True)
@@ -312,7 +309,7 @@ def solve_newton_problem(
             n_seg_gauss=problem.n_seg_gauss,
         )
 
-        _, _, H, l_vec, C, d = assemble_lagrange_kkt_system(
+        K, rhs, H, l_vec, C, d = assemble_lagrange_kkt_system(
             grid=grid,
             elems=elems,
             f_func=f_func_k,
@@ -326,17 +323,14 @@ def solve_newton_problem(
             flux_jump_weights=(0.5, 0.5),
         )
 
-        z_new, _lam, auglag_history = solve_augmented_lagrange(
+        z_new, _lam, lagrange_history = solve_lagrange_kkt(
+            K=K,
+            rhs=rhs,
             H=H,
             l=l_vec,
             C=C,
             d=d,
-            rho=solver.rho,
-            max_iter=solver.max_aug_lag_iter,
-            tol_primal=solver.tol_primal,
-            tol_stationarity=solver.tol_stationarity,
-            relax=1.0,
-            verbose=False,
+            residual_tol=solver.lagrange_residual_tol,
         )
 
         x_check = np.linspace(problem.a, problem.b, solver.error_check_points)
@@ -349,7 +343,7 @@ def solve_newton_problem(
         record = NewtonIterationRecord(
             iteration=iteration,
             error_inf=error_inf,
-            auglag_history=auglag_history,
+            lagrange_history=lagrange_history,
         )
         history.append(record)
 
@@ -357,7 +351,7 @@ def solve_newton_problem(
             print(
                 f"Newton Iter {iteration:2d} | "
                 f"L-inf Error: {error_inf:.4e} | "
-                f"Inner AugLag Iters: {auglag_history.iter}"
+                f"KKT residual: {lagrange_history.residual_inf:.4e}"
             )
 
         if error_inf < solver.newton_tol:
@@ -484,7 +478,7 @@ def plot_solution(result: SolveResult, show: bool = True, save_path: Path | None
 
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(x_plot, u_plot, "b-", linewidth=2, label="u(x)")
-    ax.set_title(r"Solution of $-u'' + u^3 = f(x)$ using TFPM-AugLag")
+    ax.set_title(r"Solution of $-u'' + u^3 = f(x)$ using TFPM-Lagrange")
     ax.set_xlabel("x")
     ax.set_ylabel("u")
     ax.grid(True, alpha=0.3)
@@ -540,7 +534,7 @@ def compare_nonlinear_bvp_with_fdm(
     _validate_grid_count("solver.fdm_reference_num_elements", solver.fdm_reference_num_elements, problem)
 
     if verbose:
-        print("=== Solving TFPM-AugLag solution ===")
+        print("=== Solving TFPM-Lagrange solution ===")
     tfpm_result = solve_newton_problem(
         problem=problem,
         solver=solver,
@@ -580,7 +574,7 @@ def compare_nonlinear_bvp_with_fdm(
     reference_label = f"FDM fine (N={fdm_reference_result.num_elements})"
 
     method_values = {
-        "TFPM-AugLag": (
+        "TFPM-Lagrange": (
             tfpm_result.evaluate_on_side(x_left, side="left"),
             tfpm_result.evaluate_on_side(x_right, side="right"),
         ),
@@ -609,7 +603,7 @@ def compare_nonlinear_bvp_with_fdm(
     plot_solutions(
         [
             (reference_label, x_plot_ref, u_plot_ref),
-            ("TFPM-AugLag", x_plot_tfpm, u_plot_tfpm),
+            ("TFPM-Lagrange", x_plot_tfpm, u_plot_tfpm),
             (f"FDM (N={fdm_result.num_elements})", x_plot_fdm, u_plot_fdm),
         ],
         xI=problem.x_interface,
@@ -626,20 +620,20 @@ def compare_nonlinear_bvp_with_fdm(
     )
 
     timings = {
-        "TFPM-AugLag": tfpm_result.elapsed_seconds,
+        "TFPM-Lagrange": tfpm_result.elapsed_seconds,
         f"FDM (N={fdm_result.num_elements})": fdm_result.elapsed_seconds,
         reference_label: fdm_reference_result.elapsed_seconds,
     }
     diagnostics = [
-        f"TFPM-AugLag converged = {tfpm_result.converged}",
+        f"TFPM-Lagrange converged = {tfpm_result.converged}",
         f"FDM (N={fdm_result.num_elements}) converged = {fdm_result.converged}",
         f"{reference_label} converged = {fdm_reference_result.converged}",
-        f"TFPM-AugLag Newton steps = {len(tfpm_result.history)}",
+        f"TFPM-Lagrange Newton steps = {len(tfpm_result.history)}",
         f"FDM (N={fdm_result.num_elements}) Newton steps = {len(fdm_result.history)}",
         f"{reference_label} Newton steps = {len(fdm_reference_result.history)}",
     ]
     if tfpm_result.history:
-        diagnostics.append(f"TFPM-AugLag final Newton increment = {tfpm_result.history[-1].error_inf:.6e}")
+        diagnostics.append(f"TFPM-Lagrange final Newton increment = {tfpm_result.history[-1].error_inf:.6e}")
     if fdm_result.history:
         diagnostics.append(
             f"FDM (N={fdm_result.num_elements}) final Newton increment = {fdm_result.history[-1].error_inf:.6e}"

@@ -1,3 +1,3 @@
-"""Augmented-Lagrange variant of the TFPM comparison suite."""
+"""Lagrange-multiplier variant of the TFPM comparison suite."""
 
 __all__ = ["baselines", "core", "experiments", "postprocess"]

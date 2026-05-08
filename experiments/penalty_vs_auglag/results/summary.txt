@@ -1,32 +1,32 @@
 Timings (seconds):
-- build_elements: 0.013049
-- auglag_system_assemble: 0.001795
-- penalty_system_assemble: 0.001507
-- auglag_solve: 0.001033
-- penalty_solve(gamma=1.000000e+04): 0.000203
-- penalty_solve(gamma=1.000000e+05): 0.000177
-- penalty_solve(gamma=1.000000e+06): 0.000167
-- exact_reference_eval_total: 0.000105
+- build_elements: 0.028609
+- lagrange_system_assemble: 0.001896
+- penalty_system_assemble: 0.001235
+- lagrange_solve: 0.000404
+- penalty_solve(gamma=1.000000e+04): 0.001560
+- penalty_solve(gamma=1.000000e+05): 0.000212
+- penalty_solve(gamma=1.000000e+06): 0.000175
+- exact_reference_eval_total: 0.000116
 
 Relative L2 errors vs Exact:
-- AugLag vs Exact: 1.954350e-06
+- Lagrange vs Exact: 1.954339e-06
 - Penalty (gamma=1.0e+04) vs Exact: 1.953697e-04
-- Penalty (gamma=1.0e+05) vs Exact: 2.101507e-05
-- Penalty (gamma=1.0e+06) vs Exact: 3.715076e-06
+- Penalty (gamma=1.0e+05) vs Exact: 2.101506e-05
+- Penalty (gamma=1.0e+06) vs Exact: 3.715022e-06
 
 Relative H^1 errors vs Exact:
-- AugLag vs Exact: 4.379645e-05
+- Lagrange vs Exact: 4.379645e-05
 - Penalty (gamma=1.0e+04) vs Exact: 6.502018e-04
 - Penalty (gamma=1.0e+05) vs Exact: 7.832198e-05
 - Penalty (gamma=1.0e+06) vs Exact: 4.427507e-05
 
 Pairwise relative L2 errors:
-- AugLag vs Penalty (gamma=1.0e+04): 1.937604e-04
-- AugLag vs Penalty (gamma=1.0e+05): 1.937913e-05
-- AugLag vs Penalty (gamma=1.0e+06): 1.937975e-06
+- Lagrange vs Penalty (gamma=1.0e+04): 1.937604e-04
+- Lagrange vs Penalty (gamma=1.0e+05): 1.937914e-05
+- Lagrange vs Penalty (gamma=1.0e+06): 1.937928e-06
 - Penalty (gamma=1.0e+04) vs Penalty (gamma=1.0e+05): 1.743843e-04
 - Penalty (gamma=1.0e+04) vs Penalty (gamma=1.0e+06): 1.918228e-04
-- Penalty (gamma=1.0e+05) vs Penalty (gamma=1.0e+06): 1.744119e-05
+- Penalty (gamma=1.0e+05) vs Penalty (gamma=1.0e+06): 1.744124e-05
 
 Diagnostics:
 - Reference source = Exact
@@ -34,29 +34,28 @@ Diagnostics:
 - Transformed interface yI = 5.000000e-01
 - TFPM grid split: left elements = 5, right elements = 5
 - Flux-jump average = eps_weighted (left=5.000000e-01, right=5.000000e-01)
-- AugLag rho = 1.000000e+01
-- AugLag final iter = 31
-- AugLag final primal residual = 2.938505e-10
-- AugLag final stationarity residual = 9.325873e-15
-- AugLag approximate lambda inf = 3.218282e+00
-- AugLag interface [u] residual = 2.860483e-10
-- AugLag interface [eps u'] residual = 3.239777e-04
+- Lagrange KKT residual = 3.427814e-15
+- Lagrange final primal residual = 4.440892e-16
+- Lagrange final stationarity residual = 3.552714e-15
+- Lagrange lambda inf = 3.218282e+00
+- Lagrange interface [u] residual = 2.220446e-16
+- Lagrange interface [eps u'] residual = 3.239777e-04
 - Penalty gamma sweep = 1.000000e+04, 1.000000e+05, 1.000000e+06
 - Penalty (gamma=1.0e+04) gamma = 1.000000e+04
 - Penalty (gamma=1.0e+04) primal residual = 3.216399e-04
-- Penalty (gamma=1.0e+04) stationarity residual = 1.607031e-11
+- Penalty (gamma=1.0e+04) stationarity residual = 7.239542e-12
 - Penalty (gamma=1.0e+04) approximate lambda inf = 3.216399e+00
 - Penalty (gamma=1.0e+04) interface [u] residual = 1.572497e-04
 - Penalty (gamma=1.0e+04) interface [eps u'] residual = 3.238675e-04
 - Penalty (gamma=1.0e+05) gamma = 1.000000e+05
 - Penalty (gamma=1.0e+05) primal residual = 3.218093e-05
-- Penalty (gamma=1.0e+05) stationarity residual = 1.160621e-10
+- Penalty (gamma=1.0e+05) stationarity residual = 3.820322e-11
 - Penalty (gamma=1.0e+05) approximate lambda inf = 3.218093e+00
 - Penalty (gamma=1.0e+05) interface [u] residual = 1.574174e-05
-- Penalty (gamma=1.0e+05) interface [eps u'] residual = 3.239665e-04
+- Penalty (gamma=1.0e+05) interface [eps u'] residual = 3.239666e-04
 - Penalty (gamma=1.0e+06) gamma = 1.000000e+06
 - Penalty (gamma=1.0e+06) primal residual = 3.218263e-06
-- Penalty (gamma=1.0e+06) stationarity residual = 9.255361e-10
+- Penalty (gamma=1.0e+06) stationarity residual = 3.623288e-10
 - Penalty (gamma=1.0e+06) approximate lambda inf = 3.218263e+00
 - Penalty (gamma=1.0e+06) interface [u] residual = 1.574342e-06
-- Penalty (gamma=1.0e+06) interface [eps u'] residual = 3.239786e-04
+- Penalty (gamma=1.0e+06) interface [eps u'] residual = 3.239764e-04

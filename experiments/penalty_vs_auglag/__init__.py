@@ -1,1 +1,1 @@
-"""Penalty-method vs AugLag experiment for the linear TFPM interface problem."""
+"""Penalty-method vs Lagrange experiment for the linear TFPM interface problem."""

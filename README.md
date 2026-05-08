@@ -1,6 +1,6 @@
-# TFPM Compare Suite (AugLag)
+# TFPM Compare Suite (Lagrange)
 
-This package studies TFPM with an augmented-Lagrange interface treatment for
+This package studies TFPM with a direct Lagrange-multiplier interface treatment for
 
 `-(eps(x)u')' + c(x)u = f(x), u(0)=m, u(1)=n, [u]=p, [eps(x)u']=q`
 
@@ -13,15 +13,15 @@ experiment folders.
 
 ```text
 tfpm_compare_suite_auglag/
-|- core/                      reusable linear-interface model + TFPM/AugLag kernel
+|- core/                      reusable linear-interface model + TFPM/Lagrange kernel
 |- baselines/                 FDM and FEM comparison solvers
 |- postprocess/               reserved for future shared post-processing helpers
 |- experiments/
-|  |- compare_auglag/         main linear comparison experiment
+|  |- compare_auglag/         main linear comparison experiment (legacy folder name)
 |  |- allen_cahn_evolution/   time-evolution Allen-Cahn Scheme I-III experiment
 |  |- convergence_eps_variation/
 |  |- nonlinear_pde/
-|  `- penalty_vs_auglag/
+|  `- penalty_vs_auglag/      penalty vs direct Lagrange experiment (legacy folder name)
 |- results*/                  older output folders kept as-is
 `- __init__.py
 ```
@@ -56,7 +56,7 @@ Each experiment folder is intended to keep three things close together:
 
 Current experiment folders:
 
-- `experiments/compare_auglag/`
+- `experiments/compare_auglag/` (legacy folder name; now uses direct Lagrange)
   Files: `problem.py`, `analysis_plot.py`, `run_compare_auglag.py`, `results/`
 - `experiments/allen_cahn_evolution/`
   Files: `README.md`, `problem.py`, `analysis_plot.py`, `run_allen_cahn_evolution.py`, `results/`
@@ -64,7 +64,7 @@ Current experiment folders:
   Files: `convergence_study_eps_variation.py`, `results/`
 - `experiments/nonlinear_pde/`
   Files: `analysis_plot.py`, `solve_nonlinear_pde.py`, `results/`
-- `experiments/penalty_vs_auglag/`
+- `experiments/penalty_vs_auglag/` (legacy folder name; now compares penalty with direct Lagrange)
   Files: `problem.py`, `analysis_plot.py`, `run_penalty_vs_auglag.py`, `results/`
 
 This is a good default pattern for future studies too. If a new experiment grows
@@ -91,6 +91,7 @@ Each experiment now writes to its own local `results/` directory by default:
 - `experiments/allen_cahn_evolution/results/`
 - `experiments/convergence_eps_variation/results/`
 - `experiments/nonlinear_pde/results/`
+- `experiments/penalty_vs_auglag/results/`
 
 This keeps figures, summaries, and comparisons from different studies from
 mixing together.
