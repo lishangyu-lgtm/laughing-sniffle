@@ -11,6 +11,7 @@ def plot_final_solutions(
     series: list[tuple[str, np.ndarray, np.ndarray]],
     x_interface: float,
     save_path: Path,
+    title: str = "Allen-Cahn Evolution: Final State",
 ) -> None:
     fig, ax = plt.subplots(figsize=(9.2, 5.4))
     for label, x, u in series:
@@ -18,7 +19,7 @@ def plot_final_solutions(
     ax.axvline(x_interface, linestyle="--", linewidth=1.0, color="0.35", alpha=0.8)
     ax.set_xlabel("x")
     ax.set_ylabel("u")
-    ax.set_title("Allen-Cahn Evolution: Final State")
+    ax.set_title(title)
     ax.grid(True, alpha=0.25)
     ax.legend(loc="best")
     fig.tight_layout()
@@ -30,6 +31,7 @@ def plot_final_solutions(
 def plot_energy_histories(
     histories: dict[str, tuple[np.ndarray, np.ndarray]],
     save_path: Path,
+    title: str = "Allen-Cahn Evolution: Energy History",
 ) -> None:
     fig, ax = plt.subplots(figsize=(9.2, 5.2))
     for label, (times, energies) in histories.items():
@@ -38,7 +40,7 @@ def plot_energy_histories(
         ax.plot(times, energies, marker="o", markersize=3.5, linewidth=1.5, label=label)
     ax.set_xlabel("time")
     ax.set_ylabel("energy")
-    ax.set_title("Allen-Cahn Evolution: Energy History")
+    ax.set_title(title)
     ax.grid(True, alpha=0.25)
     ax.legend(loc="best")
     fig.tight_layout()
@@ -52,6 +54,7 @@ def plot_errors_vs_reference(
     x_interface: float,
     reference_label: str,
     save_path: Path,
+    title: str | None = None,
 ) -> None:
     fig, ax = plt.subplots(figsize=(9.2, 5.2))
     for label, x, error in series:
@@ -59,7 +62,9 @@ def plot_errors_vs_reference(
     ax.axvline(x_interface, linestyle="--", linewidth=1.0, color="0.35", alpha=0.8)
     ax.set_xlabel("x")
     ax.set_ylabel("absolute error")
-    ax.set_title(f"Allen-Cahn Evolution: Final Error vs {reference_label}")
+    if title is None:
+        title = f"Allen-Cahn Evolution: Final Error vs {reference_label}"
+    ax.set_title(title)
     ax.grid(True, alpha=0.25)
     ax.legend(loc="best")
     fig.tight_layout()

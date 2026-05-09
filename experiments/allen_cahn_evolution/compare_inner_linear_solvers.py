@@ -179,6 +179,10 @@ def _series_label(mode: str, inner_solver: str) -> str:
     return f"{_mode_label(mode)} / {_inner_solver_label(inner_solver)}"
 
 
+def _mode_output_dir(out_dir: Path, mode: str) -> Path:
+    return out_dir / _normalize_mode(mode)
+
+
 def _jump_du_for_linear_problem(problem: ProblemConfig, transformed_grid: TransformedGrid) -> float:
     if transformed_grid.solved_on_physical_grid:
         a_interface = float(diffusion_piecewise(problem, np.array([problem.x_interface], dtype=np.float64))[0])
@@ -836,14 +840,13 @@ def run_inner_solver_comparison(
 
     reference_result: FdmReferenceResult | None = None
     reference_errors: dict[tuple[str, str], tuple[float, float]] = {}
-    reference_error_series: list[tuple[str, np.ndarray, np.ndarray]] = []
     if experiment.reference.enabled:
         _print(
             experiment.output.verbose,
             f"=== Running FDM reference ({experiment.reference.method}, N={experiment.reference.n_segments}) ===",
         )
         reference_result = solve_fdm_reference(experiment)
-        reference_errors, reference_error_series = _compute_reference_errors(
+        reference_errors, _ = _compute_reference_errors(
             experiment,
             results,
             reference_result,
@@ -860,37 +863,62 @@ def run_inner_solver_comparison(
     output_files: list[Path] = []
     if experiment.output.save_plots:
         first_result = next(iter(results.values()))
-        final_series = [("initial", x_plot, first_result.initial_state.eval(x_plot))]
-        if reference_result is not None:
-            final_series.append((reference_result.label, x_plot, reference_result.final_state.eval(x_plot)))
-        for key, result in results.items():
-            final_series.append((_series_label(*key), x_plot, result.final_state.eval(x_plot)))
-        final_plot = out_dir / "allen_cahn_inner_solver_final.png"
-        plot_final_solutions(final_series, experiment.problem.x_interface, final_plot)
-        output_files.append(final_plot)
-
-        energy_histories: dict[str, tuple[np.ndarray, np.ndarray]] = {}
-        if reference_result is not None:
-            energy_histories[reference_result.label] = (reference_result.times, reference_result.energies)
-        for key, result in results.items():
-            energy_histories[_series_label(*key)] = _history_arrays(result)
-        energy_plot = out_dir / "allen_cahn_inner_solver_energy.png"
-        plot_energy_histories(energy_histories, energy_plot)
-        output_files.append(energy_plot)
-
-        if reference_result is not None:
-            error_plot = out_dir / "allen_cahn_inner_solver_errors_vs_fdm_reference.png"
-            plot_errors_vs_reference(
-                reference_error_series,
+        for mode in modes:
+            mode_dir = _mode_output_dir(out_dir, mode)
+            final_series = [("initial", x_plot, first_result.initial_state.eval(x_plot))]
+            if reference_result is not None:
+                final_series.append((reference_result.label, x_plot, reference_result.final_state.eval(x_plot)))
+            for inner_solver in inner_solvers:
+                result = results[(mode, inner_solver)]
+                final_series.append((_inner_solver_label(inner_solver), x_plot, result.final_state.eval(x_plot)))
+            final_plot = mode_dir / "final_state.png"
+            plot_final_solutions(
+                final_series,
                 experiment.problem.x_interface,
-                reference_result.label,
-                error_plot,
+                final_plot,
+                title=f"Allen-Cahn Evolution: {_mode_label(mode)} Final State",
             )
-            output_files.append(error_plot)
+            output_files.append(final_plot)
+
+            energy_histories: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+            if reference_result is not None:
+                energy_histories[reference_result.label] = (reference_result.times, reference_result.energies)
+            for inner_solver in inner_solvers:
+                result = results[(mode, inner_solver)]
+                energy_histories[_inner_solver_label(inner_solver)] = _history_arrays(result)
+            energy_plot = mode_dir / "energy_history.png"
+            plot_energy_histories(
+                energy_histories,
+                energy_plot,
+                title=f"Allen-Cahn Evolution: {_mode_label(mode)} Energy History",
+            )
+            output_files.append(energy_plot)
+
+            if reference_result is not None:
+                x_error = np.linspace(
+                    experiment.problem.x_left,
+                    experiment.problem.x_right,
+                    int(experiment.reference.comparison_samples),
+                )
+                ref_values = reference_result.final_state.eval(x_error)
+                error_series = []
+                for inner_solver in inner_solvers:
+                    result = results[(mode, inner_solver)]
+                    values = result.final_state.eval(x_error)
+                    error_series.append((_inner_solver_label(inner_solver), x_error, values - ref_values))
+                error_plot = mode_dir / "errors_vs_fdm_reference.png"
+                plot_errors_vs_reference(
+                    error_series,
+                    experiment.problem.x_interface,
+                    reference_result.label,
+                    error_plot,
+                    title=f"Allen-Cahn Evolution: {_mode_label(mode)} Final Error vs {reference_result.label}",
+                )
+                output_files.append(error_plot)
 
     if experiment.output.save_npz:
         for result in results.values():
-            output_files.append(_save_result_npz(out_dir, result))
+            output_files.append(_save_result_npz(_mode_output_dir(out_dir, result.mode), result))
         if reference_result is not None:
             output_files.append(_save_reference_npz(out_dir, reference_result))
 

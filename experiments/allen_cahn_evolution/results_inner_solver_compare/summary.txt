@@ -6,68 +6,74 @@ Configuration:
 - bc_left = 0.0, bc_right = 0.0
 - linear_grid_mode = auto
 - inner comparison = same outer scheme, same linear grid, different inner linear solver
-- inner solvers = TFPM-ALM, FDM
+- inner solvers = TFPM-Lagrange, FDM
 - modes = Scheme I, Scheme II, Scheme III
 - n_elements = 50, monitor_segments = 800
 - tfpm_basis = endpoint_auto
 - time interval = [0.0, 2.0], dt = 0.1
-- auglag rho = 100.0, tolerances = (1e-10, 1e-10)
+- lagrange residual tolerance = 1e-10
 - reference = BDF FDM, N=2000, rtol=1e-08, atol=1e-10, max_step=0.01, comparison_samples=2000
 
 Results:
-- FDM reference (BDF, N=2000) elapsed = 0.053878 s
+- FDM reference (BDF, N=2000) elapsed = 0.070696 s
 - FDM reference (BDF, N=2000) nfev = 472, njev = 1, nlu = 14
 - FDM reference (BDF, N=2000) final energy = 4.96010650e-02
-- Scheme I / TFPM-ALM completed = True, all inner converged = True
-- Scheme I / TFPM-ALM steps = 20, elapsed = 2.621251 s, linear solve time = 1.248155 s
-- Scheme I / TFPM-ALM final time = 2.00000000e+00, final energy = 5.08951511e-02
-- Scheme I / TFPM-ALM final step_l2 = 1.62270468e-02, total AugLag iterations = 1224
-- Scheme I / TFPM-ALM final relative L2 vs FDM reference (BDF, N=2000) = 1.17733916e-02
-- Scheme I / TFPM-ALM final relative Linf vs FDM reference (BDF, N=2000) = 2.77677333e-02
+- Scheme I / TFPM-Lagrange completed = True, all inner converged = True
+- Scheme I / TFPM-Lagrange steps = 20, elapsed = 2.337801 s, linear solve time = 1.109147 s
+- Scheme I / TFPM-Lagrange final time = 2.00000000e+00, final energy = 5.08951511e-02
+- Scheme I / TFPM-Lagrange final step_l2 = 1.62270468e-02, total Lagrange KKT solves = 20
+- Scheme I / TFPM-Lagrange final relative L2 vs FDM reference (BDF, N=2000) = 1.17733917e-02
+- Scheme I / TFPM-Lagrange final relative Linf vs FDM reference (BDF, N=2000) = 2.77677333e-02
 - Scheme I / FDM completed = True, all inner converged = True
-- Scheme I / FDM steps = 20, elapsed = 0.066880 s, linear solve time = 0.061359 s
+- Scheme I / FDM steps = 20, elapsed = 0.060765 s, linear solve time = 0.055703 s
 - Scheme I / FDM final time = 2.00000000e+00, final energy = 5.09852488e-02
-- Scheme I / FDM final step_l2 = 1.61236440e-02, total AugLag iterations = 0
+- Scheme I / FDM final step_l2 = 1.61236440e-02, total Lagrange KKT solves = 0
 - Scheme I / FDM final relative L2 vs FDM reference (BDF, N=2000) = 1.19511326e-02
 - Scheme I / FDM final relative Linf vs FDM reference (BDF, N=2000) = 2.89474021e-02
-- Scheme II / TFPM-ALM completed = True, all inner converged = True
-- Scheme II / TFPM-ALM steps = 20, elapsed = 64.916375 s, linear solve time = 3.261396 s
-- Scheme II / TFPM-ALM final time = 2.00000000e+00, final energy = 5.33969824e-02
-- Scheme II / TFPM-ALM final step_l2 = 1.55574890e-02, total AugLag iterations = 11859
-- Scheme II / TFPM-ALM final relative L2 vs FDM reference (BDF, N=2000) = 2.74420680e-02
-- Scheme II / TFPM-ALM final relative Linf vs FDM reference (BDF, N=2000) = 4.94982735e-02
+- Scheme II / TFPM-Lagrange completed = True, all inner converged = True
+- Scheme II / TFPM-Lagrange steps = 20, elapsed = 58.222966 s, linear solve time = 2.930600 s
+- Scheme II / TFPM-Lagrange final time = 2.00000000e+00, final energy = 5.33969824e-02
+- Scheme II / TFPM-Lagrange final step_l2 = 1.55574890e-02, total Lagrange KKT solves = 180
+- Scheme II / TFPM-Lagrange final relative L2 vs FDM reference (BDF, N=2000) = 2.74420680e-02
+- Scheme II / TFPM-Lagrange final relative Linf vs FDM reference (BDF, N=2000) = 4.94982735e-02
 - Scheme II / FDM completed = True, all inner converged = True
-- Scheme II / FDM steps = 20, elapsed = 0.567815 s, linear solve time = 0.057383 s
+- Scheme II / FDM steps = 20, elapsed = 0.501913 s, linear solve time = 0.051708 s
 - Scheme II / FDM final time = 2.00000000e+00, final energy = 5.34707609e-02
-- Scheme II / FDM final step_l2 = 1.54659838e-02, total AugLag iterations = 0
+- Scheme II / FDM final step_l2 = 1.54659838e-02, total Lagrange KKT solves = 0
 - Scheme II / FDM final relative L2 vs FDM reference (BDF, N=2000) = 2.81408656e-02
 - Scheme II / FDM final relative Linf vs FDM reference (BDF, N=2000) = 5.18199542e-02
-- Scheme III / TFPM-ALM completed = True, all inner converged = True
-- Scheme III / TFPM-ALM steps = 20, elapsed = 47.433784 s, linear solve time = 3.538036 s
-- Scheme III / TFPM-ALM final time = 2.00000000e+00, final energy = 4.98856274e-02
-- Scheme III / TFPM-ALM final step_l2 = 1.63313282e-02, total AugLag iterations = 8915
-- Scheme III / TFPM-ALM final relative L2 vs FDM reference (BDF, N=2000) = 2.12841909e-03
-- Scheme III / TFPM-ALM final relative Linf vs FDM reference (BDF, N=2000) = 4.55826023e-03
+- Scheme III / TFPM-Lagrange completed = True, all inner converged = True
+- Scheme III / TFPM-Lagrange steps = 20, elapsed = 44.617633 s, linear solve time = 3.259931 s
+- Scheme III / TFPM-Lagrange final time = 2.00000000e+00, final energy = 4.98856274e-02
+- Scheme III / TFPM-Lagrange final step_l2 = 1.63313282e-02, total Lagrange KKT solves = 123
+- Scheme III / TFPM-Lagrange final relative L2 vs FDM reference (BDF, N=2000) = 2.12841909e-03
+- Scheme III / TFPM-Lagrange final relative Linf vs FDM reference (BDF, N=2000) = 4.55826023e-03
 - Scheme III / FDM completed = True, all inner converged = True
-- Scheme III / FDM steps = 20, elapsed = 0.456233 s, linear solve time = 0.069537 s
+- Scheme III / FDM steps = 20, elapsed = 0.628297 s, linear solve time = 0.094922 s
 - Scheme III / FDM final time = 2.00000000e+00, final energy = 4.99654129e-02
-- Scheme III / FDM final step_l2 = 1.62215682e-02, total AugLag iterations = 0
+- Scheme III / FDM final step_l2 = 1.62215682e-02, total Lagrange KKT solves = 0
 - Scheme III / FDM final relative L2 vs FDM reference (BDF, N=2000) = 3.28856842e-03
 - Scheme III / FDM final relative Linf vs FDM reference (BDF, N=2000) = 7.92919800e-03
-- Pairwise final differences between FDM inner and TFPM-ALM inner:
-- Scheme I FDM-inner vs TFPM-ALM-inner relative L2 = 1.62376176e-03, relative Linf = 4.18399375e-03
-- Scheme II FDM-inner vs TFPM-ALM-inner relative L2 = 1.56646859e-03, relative Linf = 4.08712468e-03
-- Scheme III FDM-inner vs TFPM-ALM-inner relative L2 = 1.63198064e-03, relative Linf = 4.30392230e-03
+- Pairwise final differences between FDM inner and TFPM-Lagrange inner:
+- Scheme I FDM-inner vs TFPM-Lagrange-inner relative L2 = 1.62376177e-03, relative Linf = 4.18399375e-03
+- Scheme II FDM-inner vs TFPM-Lagrange-inner relative L2 = 1.56646860e-03, relative Linf = 4.08712472e-03
+- Scheme III FDM-inner vs TFPM-Lagrange-inner relative L2 = 1.63198065e-03, relative Linf = 4.30392234e-03
 
 Output files:
-- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\allen_cahn_inner_solver_final.png
-- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\allen_cahn_inner_solver_energy.png
-- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\allen_cahn_inner_solver_errors_vs_fdm_reference.png
-- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme1_tfpm_alm_state_history.npz
-- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme1_fdm_state_history.npz
-- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme2_tfpm_alm_state_history.npz
-- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme2_fdm_state_history.npz
-- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme3_tfpm_alm_state_history.npz
-- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme3_fdm_state_history.npz
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme1\final_state.png
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme1\energy_history.png
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme1\errors_vs_fdm_reference.png
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme2\final_state.png
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme2\energy_history.png
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme2\errors_vs_fdm_reference.png
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme3\final_state.png
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme3\energy_history.png
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme3\errors_vs_fdm_reference.png
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme1\scheme1_tfpm_lagrange_state_history.npz
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme1\scheme1_fdm_state_history.npz
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme2\scheme2_tfpm_lagrange_state_history.npz
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme2\scheme2_fdm_state_history.npz
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme3\scheme3_tfpm_lagrange_state_history.npz
+- F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\scheme3\scheme3_fdm_state_history.npz
 - F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\fdm_reference_state_history.npz
 - F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\allen_cahn_evolution\results_inner_solver_compare\summary.txt
