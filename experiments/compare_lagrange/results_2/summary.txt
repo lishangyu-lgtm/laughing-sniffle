@@ -20,51 +20,45 @@ Numerical settings:
 - fem_plot_cells: 20
 - error_samples: 4000
 - use_true_c_lagrange: True
-- use_true_c_auglag: True
+- lagrange_residual_tol: 1e-10
 - flux_jump_average: eps_weighted
-- auglag_rho: 100
-- auglag_max_iter: 100000
-- auglag_tol_primal: 1e-10
-- auglag_tol_stationarity: 1e-10
-- auglag_relax: 1.0
-- auglag_verbose: False
 
 Output settings:
-- output_dir: F:\homework\new_methods_of_TFPM\tfpm_compare_suite_auglag\experiments\compare_auglag\results_2
+- output_dir: F:\homework\new_methods_of_TFPM\tfpm_compare_suite_lagrange\experiments\compare_lagrange\results_2
 - save_plots: True
 
 Timings (seconds):
-- build_elements: 0.108956
-- tfpm_strong_solve: 0.001110
-- auglag_assemble: 0.007386
-- auglag_solve: 0.000498
-- fdm_reference_solve_total: 32.722727
-- fdm_solve_total: 0.036738
-- fem_assemble: 0.094900
-- fem_solve: 0.000468
+- build_elements: 0.212222
+- tfpm_strong_solve: 0.001271
+- lagrange_assemble: 0.007760
+- lagrange_solve: 0.000258
+- fdm_reference_solve_total: 33.216893
+- fdm_solve_total: 0.034558
+- fem_assemble: 0.073365
+- fem_solve: 0.000528
 
 Relative L2 errors vs FDM fine:
-- TFPM-Strong vs FDM fine: 8.403864e-06
-- AugLag vs FDM fine: 6.247429e-06
-- FDM vs FDM fine: 2.489720e-03
-- FEM vs FDM fine: 1.691698e-03
+- TFPM-Strong vs FDM fine: 1.217053e-03
+- Lagrange vs FDM fine: 1.208950e-03
+- FDM vs FDM fine: 1.492189e-02
+- FEM vs FDM fine: 1.034371e-02
 
 Relative H^1 errors vs FDM fine:
-- TFPM-Strong vs FDM fine: 1.535790e-04
-- AugLag vs FDM fine: 1.574063e-04
-- FDM vs FDM fine: 1.264230e-01
-- FEM vs FDM fine: 1.255805e-01
+- TFPM-Strong vs FDM fine: 4.550087e-03
+- Lagrange vs FDM fine: 4.562683e-03
+- FDM vs FDM fine: 2.265970e-01
+- FEM vs FDM fine: 2.248057e-01
 
 Diagnostics:
 - Reference source = FDM fine
 - Transformed interval = [0.000000e+00, 5.000050e+04]
 - Transformed interface yI = 5.000000e-01
 - TFPM grid split: left elements = 50, right elements = 50
-- AugLag flux-jump average = eps_weighted (left=9.999900e-06, right=9.999900e-01)
-- AugLag final iter = 5
-- AugLag final primal residual = 3.053040e-09
-- AugLag final stationarity residual = 1.225812e-08
-- TFPM interface [u] residual = 5.551115e-17
-- TFPM interface [eps u'] residual = 4.795901e-18
-- AugLag interface [u] residual = 1.417431e-10
-- AugLag interface [eps u'] residual = 4.349918e-09
+- Lagrange flux-jump average = eps_weighted (left=9.999900e-06, right=9.999900e-01)
+- Lagrange KKT residual = 2.817191e-15
+- Lagrange final primal residual = 2.775558e-17
+- Lagrange final stationarity residual = 2.817191e-15
+- TFPM interface [u] residual = 0.000000e+00
+- TFPM interface [eps u'] residual = 9.002961e-16
+- Lagrange interface [u] residual = 0.000000e+00
+- Lagrange interface [eps u'] residual = 1.038608e-07

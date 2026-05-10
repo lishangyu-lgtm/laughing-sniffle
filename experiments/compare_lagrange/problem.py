@@ -114,22 +114,24 @@ def make_coefficient(config: ProblemConfig) -> Callable[[np.ndarray], np.ndarray
 
     def c_func(x: np.ndarray) -> np.ndarray:
         x = np.asarray(x, dtype=np.float64)
-        left = 10 * np.log(1 + x)
-        right = np.exp(2 * x)
+        left = _coefficient_left(x)
+        right = _coefficient_right(x)
         return np.where(x <= xI, left, right)
 
     return c_func
 
 
 def make_rhs(config: ProblemConfig) -> Callable[[np.ndarray], np.ndarray]:
-    _ = config
+    xI = config.x_interface
     c_func = make_coefficient(config)
 
     def f_func(x: np.ndarray) -> np.ndarray:
-        _ = c_func
-        f_left = np.ones_like(x)
-        f_right = np.sin(2 * np.pi * x)
-        return np.where(x < 0.5, f_left, f_right)
+        x = np.asarray(x, dtype=np.float64)
+        c = c_func(x)
+        exact = np.where(x <= xI, _exact_left(x), _exact_right(x))
+        exact_second = np.where(x <= xI, _exact_second_left(x), _exact_second_right(x))
+        eps = np.where(x <= xI, config.eps1, config.eps2)
+        return -eps * exact_second + c * exact
 
     return f_func
 

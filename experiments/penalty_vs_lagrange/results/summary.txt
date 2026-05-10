@@ -1,12 +1,12 @@
 Timings (seconds):
-- build_elements: 0.028609
-- lagrange_system_assemble: 0.001896
-- penalty_system_assemble: 0.001235
-- lagrange_solve: 0.000404
-- penalty_solve(gamma=1.000000e+04): 0.001560
-- penalty_solve(gamma=1.000000e+05): 0.000212
-- penalty_solve(gamma=1.000000e+06): 0.000175
-- exact_reference_eval_total: 0.000116
+- build_elements: 0.029940
+- lagrange_system_assemble: 0.001970
+- penalty_system_assemble: 0.001503
+- lagrange_solve: 0.000431
+- penalty_solve(gamma=1.000000e+04): 0.002416
+- penalty_solve(gamma=1.000000e+05): 0.000229
+- penalty_solve(gamma=1.000000e+06): 0.000180
+- exact_reference_eval_total: 0.000095
 
 Relative L2 errors vs Exact:
 - Lagrange vs Exact: 1.954339e-06
