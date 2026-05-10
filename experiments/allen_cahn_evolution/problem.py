@@ -74,7 +74,7 @@ class LagrangeConfig:
 @dataclass
 class TimeConfig:
     initial_time: float = 0.0
-    final_time: float = 2.0
+    final_time: float = 5.0
     dt: float = 0.1
 
 
