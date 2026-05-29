@@ -8,6 +8,12 @@ Problem settings:
 - jump_flux: 1e-05
 - reference_source: fdm
 
+Equation settings:
+- coefficient_left: 10 * log(1 + x)
+- coefficient_right: exp(2 * x)
+- rhs_left: 1
+- rhs_right: sin(2 * pi * x)
+
 Numerical settings:
 - n_elements: 100
 - n_ref: 1000000
@@ -28,14 +34,14 @@ Output settings:
 - save_plots: True
 
 Timings (seconds):
-- build_elements: 0.212222
-- tfpm_strong_solve: 0.001271
-- lagrange_assemble: 0.007760
-- lagrange_solve: 0.000258
-- fdm_reference_solve_total: 33.216893
-- fdm_solve_total: 0.034558
-- fem_assemble: 0.073365
-- fem_solve: 0.000528
+- build_elements: 0.217863
+- tfpm_strong_solve: 0.001630
+- lagrange_assemble: 0.008301
+- lagrange_solve: 0.000229
+- fdm_reference_solve_total: 30.709563
+- fdm_solve_total: 0.031138
+- fem_assemble: 0.070588
+- fem_solve: 0.000539
 
 Relative L2 errors vs FDM fine:
 - TFPM-Strong vs FDM fine: 1.217053e-03

@@ -21,18 +21,18 @@ from ...core.linear_interface import (
 
 
 DEFAULT_EPS1 = 1.0
-DEFAULT_EPS2 = 1.0
+DEFAULT_EPS2 = 1e-5
 DEFAULT_X_INTERFACE = 0.5
 
 
 def _coefficient_left(x: np.ndarray) -> np.ndarray:
     x = np.asarray(x, dtype=np.float64)
-    return 2 * np.exp(x)
+    return 10 * np.log(1 + x)
 
 
 def _coefficient_right(x: np.ndarray) -> np.ndarray:
     x = np.asarray(x, dtype=np.float64)
-    return (1 - x) ** 2
+    return np.exp(2 * x)
 
 
 def _exact_left(x: np.ndarray) -> np.ndarray:
@@ -65,23 +65,22 @@ def _exact_second_right(x: np.ndarray) -> np.ndarray:
     return np.exp(x)
 
 
-DEFAULT_LEFT_BC = float(_exact_left(np.array([X_DOMAIN[0]], dtype=np.float64))[0])
-DEFAULT_RIGHT_BC = float(_exact_right(np.array([X_DOMAIN[1]], dtype=np.float64))[0])
-DEFAULT_JUMP_U = float(
-    _exact_right(np.array([DEFAULT_X_INTERFACE], dtype=np.float64))[0]
-    - _exact_left(np.array([DEFAULT_X_INTERFACE], dtype=np.float64))[0]
-)
-DEFAULT_JUMP_FLUX = float(
-    DEFAULT_EPS2 * (np.exp(DEFAULT_X_INTERFACE) + 0.5) - DEFAULT_EPS1 * (2.0 * DEFAULT_X_INTERFACE)
-)
+DEFAULT_LEFT_BC = 0.0
+DEFAULT_RIGHT_BC = 1.0
+DEFAULT_JUMP_U = -0.5
+DEFAULT_JUMP_FLUX = 1e-5
+COEFFICIENT_LEFT_DESCRIPTION = "10 * log(1 + x)"
+COEFFICIENT_RIGHT_DESCRIPTION = "exp(2 * x)"
+RHS_LEFT_DESCRIPTION = "1"
+RHS_RIGHT_DESCRIPTION = "sin(2 * pi * x)"
 
 
 @dataclass
 class NumericalConfig:
     n_elements: int = 100
     n_ref: int = 1000000
-    n_fdm: int = 100
-    n_fem: int = 100
+    n_fdm: int = 1000
+    n_fem: int = 1000
     quad_n: int = 10
     n_seg_gauss: int = 8
     plot_per_element: int = 250
@@ -95,13 +94,24 @@ class NumericalConfig:
 
 @dataclass
 class OutputConfig:
-    output_dir: Path = field(default_factory=lambda: Path(__file__).resolve().parent / "results")
+    output_dir: Path = field(default_factory=lambda: Path(__file__).resolve().parent / "results_2")
     save_plots: bool = True
 
 
 @dataclass
 class ExperimentConfig:
-    problem: ProblemConfig = field(default_factory=ProblemConfig)
+    problem: ProblemConfig = field(
+        default_factory=lambda: ProblemConfig(
+            eps1=DEFAULT_EPS1,
+            eps2=DEFAULT_EPS2,
+            x_interface=DEFAULT_X_INTERFACE,
+            left_bc=DEFAULT_LEFT_BC,
+            right_bc=DEFAULT_RIGHT_BC,
+            jump_u=DEFAULT_JUMP_U,
+            jump_flux=DEFAULT_JUMP_FLUX,
+            reference_source="fdm",
+        )
+    )
     numerical: NumericalConfig = field(default_factory=NumericalConfig)
     output: OutputConfig = field(default_factory=OutputConfig)
 
@@ -123,15 +133,12 @@ def make_coefficient(config: ProblemConfig) -> Callable[[np.ndarray], np.ndarray
 
 def make_rhs(config: ProblemConfig) -> Callable[[np.ndarray], np.ndarray]:
     xI = config.x_interface
-    c_func = make_coefficient(config)
 
     def f_func(x: np.ndarray) -> np.ndarray:
         x = np.asarray(x, dtype=np.float64)
-        c = c_func(x)
-        exact = np.where(x <= xI, _exact_left(x), _exact_right(x))
-        exact_second = np.where(x <= xI, _exact_second_left(x), _exact_second_right(x))
-        eps = np.where(x <= xI, config.eps1, config.eps2)
-        return -eps * exact_second + c * exact
+        left = np.ones_like(x)
+        right = np.sin(2 * np.pi * x)
+        return np.where(x < xI, left, right)
 
     return f_func
 
@@ -156,11 +163,15 @@ __all__ = [
     "DEFAULT_LEFT_BC",
     "DEFAULT_RIGHT_BC",
     "DEFAULT_X_INTERFACE",
+    "COEFFICIENT_LEFT_DESCRIPTION",
+    "COEFFICIENT_RIGHT_DESCRIPTION",
     "ExactReference",
     "ExperimentConfig",
     "NumericalConfig",
     "OutputConfig",
     "ProblemConfig",
+    "RHS_LEFT_DESCRIPTION",
+    "RHS_RIGHT_DESCRIPTION",
     "X_DOMAIN",
     "flux_jump_average_weights",
     "make_coefficient",

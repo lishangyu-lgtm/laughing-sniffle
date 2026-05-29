@@ -104,8 +104,8 @@ def _window_y_limits(
 
 def _zoom_windows(x_min: float, x_max: float, xI: float) -> list[tuple[str, tuple[float, float]]]:
     span = max(x_max - x_min, 1e-12)
-    interface_half_width = max(0.06 * span, 0.02 * span)
-    right_width = max(0.06 * span, 0.02 * span)
+    interface_half_width = 0.01 * span
+    right_width = 0.01 * span
     return [
         ("Global", (x_min, x_max)),
         (

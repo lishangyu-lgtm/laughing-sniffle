@@ -47,9 +47,13 @@ from .analysis_plot import (
     write_summary,
 )
 from .problem import (
+    COEFFICIENT_LEFT_DESCRIPTION,
+    COEFFICIENT_RIGHT_DESCRIPTION,
     DEFAULT_EXPERIMENT,
     ExactReference,
     ExperimentConfig,
+    RHS_LEFT_DESCRIPTION,
+    RHS_RIGHT_DESCRIPTION,
     X_DOMAIN,
     flux_jump_average_weights,
     make_coefficient,
@@ -237,6 +241,15 @@ def _summary_config_sections(cfg, num, out_dir: Path, save_plots: bool) -> list[
                 "jump_u": cfg.jump_u,
                 "jump_flux": cfg.jump_flux,
                 "reference_source": cfg.reference_source,
+            },
+        ),
+        (
+            "Equation settings:",
+            {
+                "coefficient_left": COEFFICIENT_LEFT_DESCRIPTION,
+                "coefficient_right": COEFFICIENT_RIGHT_DESCRIPTION,
+                "rhs_left": RHS_LEFT_DESCRIPTION,
+                "rhs_right": RHS_RIGHT_DESCRIPTION,
             },
         ),
         (
