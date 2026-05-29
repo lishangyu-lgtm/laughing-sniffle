@@ -45,8 +45,8 @@ class ProblemConfig:
     eps_right: float = 0.01
     linear_grid_mode: str = "auto"
 
-    bc_left: float = 0.0
-    bc_right: float = 0.0
+    bc_left: float = 1.0
+    bc_right: float = 1.0
     jump_u: float = 0.0
     jump_flux: float = 0.0
 
@@ -56,7 +56,7 @@ class ProblemConfig:
 
 @dataclass
 class NumericalConfig:
-    n_elements: int = 50
+    n_elements: int = 100
     monitor_segments: int = 800
     quad_n: int = 10
     n_seg_gauss: int = 8
@@ -287,7 +287,7 @@ def make_initial_state(problem: ProblemConfig, x_grid: np.ndarray) -> SampledSta
     elif kind in {"smooth_periodic", "cosine", "cos"}:
         phase = 2.0 * np.pi * (x_grid - problem.x_left) / length
         endpoint_value = 0.5 * (problem.bc_left + problem.bc_right)
-        u0 = endpoint_value + 0.5 * (1.0 - endpoint_value) * (1.0 - np.cos(phase))
+        u0 = endpoint_value * np.cos(phase)
     elif kind in {"periodic_interface", "periodic_tanh", "double_interface"}:
         eps_avg = 0.5 * (problem.eps_left + problem.eps_right)
         width = max(problem.initial_tanh_scale * 2.0 * np.sqrt(2.0) * eps_avg, 1.0e-8)
