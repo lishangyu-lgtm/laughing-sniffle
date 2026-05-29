@@ -34,20 +34,26 @@ Output settings:
 - save_plots: True
 
 Timings (seconds):
-- build_elements: 0.217863
-- tfpm_strong_solve: 0.001630
-- lagrange_assemble: 0.008301
-- lagrange_solve: 0.000229
-- fdm_reference_solve_total: 30.709563
-- fdm_solve_total: 0.031138
-- fem_assemble: 0.070588
-- fem_solve: 0.000539
+- build_elements: 0.222255
+- tfpm_strong_solve: 0.001306
+- lagrange_assemble: 0.008159
+- lagrange_solve: 0.000256
+- fdm_reference_solve_total: 30.879117
+- fdm_solve_total: 0.034320
+- fem_assemble: 0.077440
+- fem_solve: 0.000523
 
 Relative L2 errors vs FDM fine:
 - TFPM-Strong vs FDM fine: 1.217053e-03
 - Lagrange vs FDM fine: 1.208950e-03
 - FDM vs FDM fine: 1.492189e-02
 - FEM vs FDM fine: 1.034371e-02
+
+Relative Linf errors vs FDM fine:
+- TFPM-Strong vs FDM fine: 5.377875e-04
+- Lagrange vs FDM fine: 5.235267e-04
+- FDM vs FDM fine: 6.624907e-02
+- FEM vs FDM fine: 5.497293e-02
 
 Relative H^1 errors vs FDM fine:
 - TFPM-Strong vs FDM fine: 4.550087e-03

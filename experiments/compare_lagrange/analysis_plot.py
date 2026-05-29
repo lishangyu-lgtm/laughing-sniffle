@@ -183,6 +183,24 @@ def relative_l2_vs_reference(
     return float(np.sqrt(num / den))
 
 
+def relative_linf_vs_reference(
+    u_left: np.ndarray,
+    u_right: np.ndarray,
+    ref_left: np.ndarray,
+    ref_right: np.ndarray,
+) -> float:
+    num = max(
+        float(np.max(np.abs(u_left - ref_left))),
+        float(np.max(np.abs(u_right - ref_right))),
+    )
+    den = max(
+        float(np.max(np.abs(ref_left))),
+        float(np.max(np.abs(ref_right))),
+        1e-15,
+    )
+    return float(num / den)
+
+
 def relative_h1_vs_reference(
     x_left: np.ndarray,
     x_right: np.ndarray,
@@ -220,6 +238,24 @@ def compute_errors_vs_reference(
         err = relative_l2_vs_reference(
             x_left=x_left,
             x_right=x_right,
+            u_left=u_left,
+            u_right=u_right,
+            ref_left=ref_left,
+            ref_right=ref_right,
+        )
+        errors[f"{name} vs {reference_label}"] = err
+    return errors
+
+
+def compute_linf_errors_vs_reference(
+    reference_values: Tuple[np.ndarray, np.ndarray],
+    method_values: Dict[str, Tuple[np.ndarray, np.ndarray]],
+    reference_label: str = "Reference",
+) -> Dict[str, float]:
+    ref_left, ref_right = reference_values
+    errors: Dict[str, float] = {}
+    for name, (u_left, u_right) in method_values.items():
+        err = relative_linf_vs_reference(
             u_left=u_left,
             u_right=u_right,
             ref_left=ref_left,

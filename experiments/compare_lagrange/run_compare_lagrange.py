@@ -42,6 +42,7 @@ from ...core.tfpm_local import (
 from .analysis_plot import (
     compute_h1_errors_vs_reference,
     compute_errors_vs_reference,
+    compute_linf_errors_vs_reference,
     plot_errors_vs_reference,
     plot_solutions,
     write_summary,
@@ -191,6 +192,7 @@ def _plot_series(
 def _print_report(
     timings: dict[str, float],
     l2_errors: dict[str, float],
+    linf_errors: dict[str, float],
     h1_errors: dict[str, float],
     diagnostics: list[str],
     out_dir: Path,
@@ -203,6 +205,10 @@ def _print_report(
 
     print(f"\n=== Relative L2 Error vs {reference_label} ===")
     for key, value in l2_errors.items():
+        print(f"{key:>28s}: {value:.6e}")
+
+    print(f"\n=== Relative Linf Error vs {reference_label} ===")
+    for key, value in linf_errors.items():
         print(f"{key:>28s}: {value:.6e}")
 
     print(f"\n=== Relative H^1 Error vs {reference_label} ===")
@@ -530,6 +536,11 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
         method_values=method_values,
         reference_label=reference_label,
     )
+    linf_errors = compute_linf_errors_vs_reference(
+        reference_values=reference_values,
+        method_values=method_values,
+        reference_label=reference_label,
+    )
     h1_errors = compute_h1_errors_vs_reference(
         x_left=x_left,
         x_right=x_right,
@@ -668,12 +679,16 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
         errors=errors,
         extra_lines=diagnostics,
         errors_title=f"Relative L2 errors vs {reference_label}:",
-        additional_sections=[(f"Relative H^1 errors vs {reference_label}:", h1_errors)],
+        additional_sections=[
+            (f"Relative Linf errors vs {reference_label}:", linf_errors),
+            (f"Relative H^1 errors vs {reference_label}:", h1_errors),
+        ],
         config_sections=_summary_config_sections(cfg, num, out_dir=out_dir, save_plots=out.save_plots),
     )
     _print_report(
         timings=timings,
         l2_errors=errors,
+        linf_errors=linf_errors,
         h1_errors=h1_errors,
         diagnostics=diagnostics,
         out_dir=out_dir,
