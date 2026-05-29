@@ -27,12 +27,12 @@ DEFAULT_X_INTERFACE = 0.5
 
 def _coefficient_left(x: np.ndarray) -> np.ndarray:
     x = np.asarray(x, dtype=np.float64)
-    return 10 * np.log(1 + x)
+    return 2 * np.exp(x)
 
 
 def _coefficient_right(x: np.ndarray) -> np.ndarray:
     x = np.asarray(x, dtype=np.float64)
-    return np.exp(2 * x)
+    return (1 - x) ** 2
 
 
 def _exact_left(x: np.ndarray) -> np.ndarray:
@@ -69,10 +69,10 @@ DEFAULT_LEFT_BC = 0.0
 DEFAULT_RIGHT_BC = 1.0
 DEFAULT_JUMP_U = -0.5
 DEFAULT_JUMP_FLUX = 1e-5
-COEFFICIENT_LEFT_DESCRIPTION = "10 * log(1 + x)"
-COEFFICIENT_RIGHT_DESCRIPTION = "exp(2 * x)"
-RHS_LEFT_DESCRIPTION = "1"
-RHS_RIGHT_DESCRIPTION = "sin(2 * pi * x)"
+COEFFICIENT_LEFT_DESCRIPTION = "2 * exp(x)"
+COEFFICIENT_RIGHT_DESCRIPTION = "(1 - x)^2"
+RHS_LEFT_DESCRIPTION = "-eps1 * 2 + c_left * (1 + x^2)"
+RHS_RIGHT_DESCRIPTION = "-eps2 * exp(x) + c_right * (exp(x) + 0.5 * x)"
 
 
 @dataclass
@@ -133,12 +133,15 @@ def make_coefficient(config: ProblemConfig) -> Callable[[np.ndarray], np.ndarray
 
 def make_rhs(config: ProblemConfig) -> Callable[[np.ndarray], np.ndarray]:
     xI = config.x_interface
+    c_func = make_coefficient(config)
 
     def f_func(x: np.ndarray) -> np.ndarray:
         x = np.asarray(x, dtype=np.float64)
-        left = np.ones_like(x)
-        right = np.sin(2 * np.pi * x)
-        return np.where(x < xI, left, right)
+        c = c_func(x)
+        exact = np.where(x <= xI, _exact_left(x), _exact_right(x))
+        exact_second = np.where(x <= xI, _exact_second_left(x), _exact_second_right(x))
+        eps = np.where(x <= xI, config.eps1, config.eps2)
+        return -eps * exact_second + c * exact
 
     return f_func
 

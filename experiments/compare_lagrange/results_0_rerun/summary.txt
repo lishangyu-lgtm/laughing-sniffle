@@ -1,0 +1,76 @@
+Problem settings:
+- eps1: 1.0
+- eps2: 1.0
+- x_interface: 0.5
+- left_bc: 1.0
+- right_bc: 3.218281828459045
+- jump_u: 0.6487212707001282
+- jump_flux: 1.1487212707001282
+- reference_source: exact
+
+Equation settings:
+- coefficient_left: 2 * exp(x)
+- coefficient_right: (1 - x)^2
+- rhs_left: -eps1 * 2 + c_left * (1 + x^2)
+- rhs_right: -eps2 * exp(x) + c_right * (exp(x) + 0.5 * x)
+
+Numerical settings:
+- n_elements: 20
+- n_ref: 1000000
+- n_fdm: 20
+- n_fem: 20
+- quad_n: 10
+- n_seg_gauss: 8
+- plot_per_element: 250
+- fdm_plot_cells: 20
+- fem_plot_cells: 20
+- error_samples: 4000
+- use_true_c_lagrange: True
+- lagrange_residual_tol: 1e-10
+- flux_jump_average: eps_weighted
+
+Output settings:
+- output_dir: F:\homework\new_methods_of_TFPM\tfpm_compare_suite_lagrange\experiments\compare_lagrange\results_0_rerun
+- save_plots: True
+
+Timings (seconds):
+- build_elements: 0.055858
+- tfpm_strong_solve: 0.000813
+- lagrange_assemble: 0.002539
+- lagrange_solve: 0.000187
+- fdm_solve_total: 0.001062
+- fem_assemble: 0.001999
+- fem_solve: 0.000068
+- exact_reference_eval_total: 0.000083
+
+Relative L2 errors vs Exact:
+- TFPM-Strong vs Exact: 3.341295e-05
+- Lagrange vs Exact: 1.222919e-07
+- FDM vs Exact: 1.898612e-04
+- FEM vs Exact: 2.247816e-04
+
+Relative Linf errors vs Exact:
+- TFPM-Strong vs Exact: 2.813473e-05
+- Lagrange vs Exact: 1.587404e-07
+- FDM vs Exact: 2.537293e-04
+- FEM vs Exact: 2.564205e-04
+
+Relative H^1 errors vs Exact:
+- TFPM-Strong vs Exact: 8.048472e-05
+- Lagrange vs Exact: 5.479337e-06
+- FDM vs Exact: 1.096234e-02
+- FEM vs Exact: 1.096062e-02
+
+Diagnostics:
+- Reference source = Exact
+- Transformed interval = [0.000000e+00, 1.000000e+00]
+- Transformed interface yI = 5.000000e-01
+- TFPM grid split: left elements = 10, right elements = 10
+- Lagrange flux-jump average = eps_weighted (left=5.000000e-01, right=5.000000e-01)
+- Lagrange KKT residual = 1.431494e-14
+- Lagrange final primal residual = 4.440892e-16
+- Lagrange final stationarity residual = 1.421085e-14
+- TFPM interface [u] residual = 0.000000e+00
+- TFPM interface [eps u'] residual = 6.661338e-15
+- Lagrange interface [u] residual = 2.220446e-16
+- Lagrange interface [eps u'] residual = 4.085979e-05

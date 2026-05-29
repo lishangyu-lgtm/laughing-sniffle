@@ -190,6 +190,7 @@ def _plot_series(
 
 
 def _print_report(
+    config_sections: list[tuple[str, dict[str, object]]],
     timings: dict[str, float],
     l2_errors: dict[str, float],
     linf_errors: dict[str, float],
@@ -199,6 +200,12 @@ def _print_report(
     reference_label: str,
     save_plots: bool,
 ) -> None:
+    for title, values in config_sections:
+        print(title)
+        for key, value in values.items():
+            print(f"- {key}: {value}")
+        print()
+
     print("=== Timing (s) ===")
     for key, value in timings.items():
         print(f"{key:>28s}: {value:.6f}")
@@ -673,6 +680,8 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
         f"Lagrange interface [eps u'] residual = {abs(lagrange_flux_jump - cfg.jump_flux):.6e}",
     ]
 
+    config_sections = _summary_config_sections(cfg, num, out_dir=out_dir, save_plots=out.save_plots)
+
     write_summary(
         out_dir / "summary.txt",
         timings=timings,
@@ -683,9 +692,10 @@ def main(experiment: ExperimentConfig = DEFAULT_EXPERIMENT) -> None:
             (f"Relative Linf errors vs {reference_label}:", linf_errors),
             (f"Relative H^1 errors vs {reference_label}:", h1_errors),
         ],
-        config_sections=_summary_config_sections(cfg, num, out_dir=out_dir, save_plots=out.save_plots),
+        config_sections=config_sections,
     )
     _print_report(
+        config_sections=config_sections,
         timings=timings,
         l2_errors=errors,
         linf_errors=linf_errors,
