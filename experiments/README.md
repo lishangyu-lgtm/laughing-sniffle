@@ -7,8 +7,10 @@ default outputs stay together.
   Files: `problem.py`, `analysis_plot.py`, `run_compare_lagrange.py`, `results/`
 - `allen_cahn_evolution/`
   Files: `README.md`, `problem.py`, `analysis_plot.py`, `run_allen_cahn_evolution.py`, `results/`
-- `convergence_eps_variation/`
-  Files: `convergence_study_eps_variation.py`, `results/`
+- `convergence_rate/`
+  Files: `convergence_study.py`, `analysis_plot.py`, `results/`
+- `equal_eps_error_sweep/`
+  Files: `run_equal_eps_error_sweep.py`, `results/`
 - `nonlinear_pde/`
   Files: `analysis_plot.py`, `solve_nonlinear_pde.py`, `results/`
 - `steady_allen_cahn_energy_alm/`

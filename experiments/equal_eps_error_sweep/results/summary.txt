@@ -1,0 +1,28 @@
+Equal-eps approximation-error sweep
+All runs set eps1 = eps2 = eps.
+The manufactured solution, coefficient functions, mesh N, quadrature, and solver settings are fixed; f and jump_flux are rebuilt consistently from the same exact solution for each eps.
+The reported eps-H1 error is relative: sqrt((||e||_L2^2 + eps ||e'||_L2^2) / (||u||_L2^2 + eps ||u'||_L2^2)).
+The eps-order p is fitted from error ~= C * eps^p; eps^(-1/2) corresponds to p = -0.5.
+
+case = case_flux_jump_only
+zero value jump, nonzero flux jump, stronger right coefficient growth
+N = 64
+c_left(x)  = 2.5 + 1.5*(x+0.1)^2
+c_right(x) = 1.7 + exp(1.2*(x-0.5))
+u_left(x)  = 1.1 + 0.25*cos(2*pi*x) + 0.3*x
+u_right(x) = u_left - 0.15*(x-0.5) + 0.25*(x-0.5)^2 - 0.08*(x-0.5)^4
+
+eps          TFPM_L2       eps-order  TFPM_EpsH1    eps-order  Lagrange_L2   eps-order  Lagrange_EpsH1   eps-order  KKTIter
+ 6.250e-02   1.21269e-05          -   1.65624e-05          -   2.23881e-08          -       1.09807e-06          -        1
+ 3.125e-02   1.36854e-05    -0.1744   1.72619e-05    -0.0597   4.47253e-08    -0.9984       1.57056e-06    -0.5163        1
+ 1.562e-02   1.48953e-05    -0.1222   1.77039e-05    -0.0365   8.92474e-08    -0.9967       2.23080e-06    -0.5063        1
+ 7.812e-03   1.58259e-05    -0.0874   1.79573e-05    -0.0205   1.77687e-07    -0.9935       3.15293e-06    -0.4991        1
+ 3.906e-03   1.65192e-05    -0.0619   1.80999e-05    -0.0114   3.52186e-07    -0.9870       4.43289e-06    -0.4916        1
+ 1.953e-03   1.70217e-05    -0.0432   1.81928e-05    -0.0074   6.91961e-07    -0.9744       6.18286e-06    -0.4800        1
+ 9.766e-04   1.73804e-05    -0.0301   1.82771e-05    -0.0067   1.33685e-06    -0.9501       8.50256e-06    -0.4596        1
+
+Global estimated eps-orders p in error ~= C * eps^p:
+tfpm_l2: p = -0.083448, equivalent eps^(-0.083448), R^2 = 0.920869
+tfpm_h1: p = -0.021780, equivalent eps^(-0.021780), R^2 = 0.847658
+lagrange_l2: p = -0.985122, equivalent eps^(-0.985122), R^2 = 0.999935
+lagrange_h1: p = -0.492981, equivalent eps^(-0.492981), R^2 = 0.999670

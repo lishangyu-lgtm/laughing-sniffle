@@ -12,23 +12,23 @@ Configuration:
 - reference = BDF FDM, N=2000, rtol=1e-08, atol=1e-10, max_step=0.01, comparison_samples=2000
 
 Results:
-- FDM reference (BDF, N=2000) elapsed = 0.153591 s
+- FDM reference (BDF, N=2000) elapsed = 0.175593 s
 - FDM reference (BDF, N=2000) nfev = 1034, njev = 1, nlu = 60
 - FDM reference (BDF, N=2000) final energy = 1.88571461e-02
 - Scheme I completed = True, all inner converged = True
-- Scheme I steps = 50, elapsed = 8.810300 s
+- Scheme I steps = 50, elapsed = 8.571118 s
 - Scheme I final time = 5.00000000e+00, final energy = 1.88607287e-02
 - Scheme I final step_l2 = 2.69413358e-04, total Lagrange KKT solves = 50
 - Scheme I final relative L2 vs FDM reference (BDF, N=2000) = 1.09307016e-03
 - Scheme I final relative Linf vs FDM reference (BDF, N=2000) = 4.78558342e-03
 - Scheme II completed = True, all inner converged = True
-- Scheme II steps = 50, elapsed = 185.807019 s
+- Scheme II steps = 50, elapsed = 233.258295 s
 - Scheme II final time = 5.00000000e+00, final energy = 1.88672796e-02
 - Scheme II final step_l2 = 4.86756013e-04, total Lagrange KKT solves = 372
 - Scheme II final relative L2 vs FDM reference (BDF, N=2000) = 2.26637492e-03
 - Scheme II final relative Linf vs FDM reference (BDF, N=2000) = 1.06942436e-02
 - Scheme III completed = True, all inner converged = True
-- Scheme III steps = 50, elapsed = 126.921664 s
+- Scheme III steps = 50, elapsed = 164.620179 s
 - Scheme III final time = 5.00000000e+00, final energy = 1.88604450e-02
 - Scheme III final step_l2 = 2.56873584e-04, total Lagrange KKT solves = 242
 - Scheme III final relative L2 vs FDM reference (BDF, N=2000) = 9.80045336e-04

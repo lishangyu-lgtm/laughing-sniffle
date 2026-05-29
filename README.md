@@ -12,14 +12,15 @@ experiment folders.
 ## Layout
 
 ```text
-tfpm_compare_suite_auglag/
+tfpm_compare_suite_lagrange/
 |- core/                      reusable linear-interface model + TFPM/Lagrange kernel
 |- baselines/                 FDM and FEM comparison solvers
 |- postprocess/               reserved for future shared post-processing helpers
 |- experiments/
 |  |- compare_lagrange/       main linear comparison experiment
 |  |- allen_cahn_evolution/   time-evolution Allen-Cahn Scheme I-III experiment
-|  |- convergence_eps_variation/
+|  |- convergence_rate/       grid convergence-rate study
+|  |- equal_eps_error_sweep/  error vs eps with eps1 = eps2
 |  |- nonlinear_pde/
 |  `- penalty_vs_lagrange/    penalty vs direct Lagrange experiment
 |- results*/                  older output folders kept as-is
@@ -60,8 +61,10 @@ Current experiment folders:
   Files: `problem.py`, `analysis_plot.py`, `run_compare_lagrange.py`, `results/`
 - `experiments/allen_cahn_evolution/`
   Files: `README.md`, `problem.py`, `analysis_plot.py`, `run_allen_cahn_evolution.py`, `results/`
-- `experiments/convergence_eps_variation/`
-  Files: `convergence_study_eps_variation.py`, `results/`
+- `experiments/convergence_rate/`
+  Files: `convergence_study.py`, `analysis_plot.py`, `results/`
+- `experiments/equal_eps_error_sweep/`
+  Files: `run_equal_eps_error_sweep.py`, `results/`
 - `experiments/nonlinear_pde/`
   Files: `analysis_plot.py`, `solve_nonlinear_pde.py`, `results/`
 - `experiments/penalty_vs_lagrange/`
@@ -76,11 +79,12 @@ script instead of putting them into `core/`.
 Recommended entry points:
 
 ```powershell
-python -m tfpm_compare_suite_auglag.experiments.compare_lagrange.run_compare_lagrange
-python -m tfpm_compare_suite_auglag.experiments.allen_cahn_evolution.run_allen_cahn_evolution
-python -m tfpm_compare_suite_auglag.experiments.convergence_eps_variation.convergence_study_eps_variation
-python -m tfpm_compare_suite_auglag.experiments.nonlinear_pde.solve_nonlinear_pde
-python -m tfpm_compare_suite_auglag.experiments.penalty_vs_lagrange.run_penalty_vs_lagrange
+python -m tfpm_compare_suite_lagrange.experiments.compare_lagrange.run_compare_lagrange
+python -m tfpm_compare_suite_lagrange.experiments.allen_cahn_evolution.run_allen_cahn_evolution
+python -m tfpm_compare_suite_lagrange.experiments.convergence_rate.convergence_study
+python -m tfpm_compare_suite_lagrange.experiments.equal_eps_error_sweep.run_equal_eps_error_sweep
+python -m tfpm_compare_suite_lagrange.experiments.nonlinear_pde.solve_nonlinear_pde
+python -m tfpm_compare_suite_lagrange.experiments.penalty_vs_lagrange.run_penalty_vs_lagrange
 ```
 
 ## Outputs
@@ -89,7 +93,8 @@ Each experiment now writes to its own local `results/` directory by default:
 
 - `experiments/compare_lagrange/results/`
 - `experiments/allen_cahn_evolution/results/`
-- `experiments/convergence_eps_variation/results/`
+- `experiments/convergence_rate/results/`
+- `experiments/equal_eps_error_sweep/results/`
 - `experiments/nonlinear_pde/results/`
 - `experiments/penalty_vs_lagrange/results/`
 

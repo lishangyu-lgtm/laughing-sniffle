@@ -3,7 +3,8 @@
 __all__ = [
     "allen_cahn_evolution",
     "compare_lagrange",
-    "convergence_eps_variation",
+    "convergence_rate",
+    "equal_eps_error_sweep",
     "nonlinear_pde",
     "penalty_vs_lagrange",
 ]

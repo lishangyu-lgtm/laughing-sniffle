@@ -543,7 +543,7 @@ def _write_summary(report_path: Path, reports: list[ScenarioCaseReport]) -> None
         "f is rebuilt from -eps_i*u'' + c*u on each side and jump_flux = eps2*u'_R - eps1*u'_L."
     )
     lines.append(
-        "Second norm reported below is sqrt(||u||_{L2}^2 + ||eps*u'||_{L2}^2), "
+        "Second norm reported below is sqrt(||u||_{L2}^2 + int eps(x)|u'|^2 dx), "
         "using piecewise eps(x)."
     )
     lines.append("")
