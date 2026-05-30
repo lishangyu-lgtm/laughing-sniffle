@@ -8,6 +8,12 @@ Problem settings:
 - jump_flux: 1.1487212707001282
 - reference_source: exact
 
+Equation settings:
+- coefficient_left: 2 * exp(x)
+- coefficient_right: (1 - x)^2
+- rhs_left: -eps1 * 2 + c_left * (1 + x^2)
+- rhs_right: -eps2 * exp(x) + c_right * (exp(x) + 0.5 * x)
+
 Numerical settings:
 - n_elements: 20
 - n_ref: 1000000
@@ -24,24 +30,30 @@ Numerical settings:
 - flux_jump_average: eps_weighted
 
 Output settings:
-- output_dir: F:\homework\new_methods_of_TFPM\tfpm_compare_suite_lagrange\experiments\compare_lagrange\results_0
+- output_dir: F:\homework\new_methods_of_TFPM\tfpm_compare_suite_lagrange\experiments\compare_lagrange\results_0_rerun
 - save_plots: True
 
 Timings (seconds):
-- build_elements: 0.056023
-- tfpm_strong_solve: 0.000640
-- lagrange_assemble: 0.002205
-- lagrange_solve: 0.000218
-- fdm_solve_total: 0.001013
-- fem_assemble: 0.001995
-- fem_solve: 0.000065
-- exact_reference_eval_total: 0.000099
+- build_elements: 0.055858
+- tfpm_strong_solve: 0.000813
+- lagrange_assemble: 0.002539
+- lagrange_solve: 0.000187
+- fdm_solve_total: 0.001062
+- fem_assemble: 0.001999
+- fem_solve: 0.000068
+- exact_reference_eval_total: 0.000083
 
 Relative L2 errors vs Exact:
 - TFPM-Strong vs Exact: 3.341295e-05
 - Lagrange vs Exact: 1.222919e-07
 - FDM vs Exact: 1.898612e-04
 - FEM vs Exact: 2.247816e-04
+
+Relative Linf errors vs Exact:
+- TFPM-Strong vs Exact: 2.813473e-05
+- Lagrange vs Exact: 1.587404e-07
+- FDM vs Exact: 2.537293e-04
+- FEM vs Exact: 2.564205e-04
 
 Relative H^1 errors vs Exact:
 - TFPM-Strong vs Exact: 8.048472e-05
